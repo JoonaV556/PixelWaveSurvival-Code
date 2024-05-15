@@ -18,7 +18,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField, Tooltip("Use this to limit the player movement velocity")]
     private float MaxVelocity = 1.3f;
 
-    private Vector2 InputVector = Vector2.zero;
+    private Vector2 MoveInput = Vector2.zero;
     Vector2 currentVelocity = Vector2.zero;
     public bool EnableMovement = true;
 
@@ -30,13 +30,19 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        if (InputVector != Vector2.zero)
+        if (MoveInput != Vector2.zero)
         {
             // Move player
             MovePlayer();
         }
         // Clamp players velocity to prevent accelerating to too high speeds
         ClampPlayerVelocity();
+    }
+
+    private void Update()
+    {
+        // Fetch input 
+        MoveInput = PlayerInput.MoveInput;
     }
 
     // Adjust player's max movement speed
@@ -54,14 +60,7 @@ public class PlayerMovement : MonoBehaviour
     private void MovePlayer()
     {
         // Do movement
-        Vector2 MoveVector = InputVector * MovementForce * Time.fixedDeltaTime;
+        Vector2 MoveVector = MoveInput * MovementForce * Time.fixedDeltaTime;
         Rigidbody.AddForce(MoveVector, ForceMode2D.Force);
-    }
-
-    // Read movement input
-    public void OnMove(InputValue input)
-    {
-        // Read movement direction from input
-        InputVector = input.Get<Vector2>().normalized;
     }
 }
