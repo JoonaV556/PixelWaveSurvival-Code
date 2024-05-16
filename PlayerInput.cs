@@ -56,6 +56,10 @@ public class PlayerInput : MonoBehaviour
     // local references to input actions
     InputAction moveAction;
 
+    InputAction switchWeaponSlotAction;
+
+    public static Action<int> OnWeaponSlotSwitched;
+
     private void Awake()
     {
         // Check if instance already exists
@@ -81,6 +85,8 @@ public class PlayerInput : MonoBehaviour
 
         // Get input actions from input action asset
         moveAction = inputActionAsset.FindAction("Movement");
+        switchWeaponSlotAction = inputActionAsset.FindAction("SwitchActiveWeaponSlot");
+
 
         // sprintAction = inputActionAsset.FindAction("Sprint");
         // jumpAction = inputActionAsset.FindAction("Jump");
@@ -115,15 +121,24 @@ public class PlayerInput : MonoBehaviour
     {
         // Init input action asset and actions
         inputActionAsset.Enable();
-        inputActionAsset.FindActionMap("Player").Enable();
         // Debug.Log("inputactionasset found: " + inputActionAsset != null);
 
         // Get input actions from input action asset
         moveAction = inputActionAsset.FindAction("Movement");
+        switchWeaponSlotAction = inputActionAsset.FindAction("SwitchActiveWeaponSlot");
         // Debug.Log("moveAction found: " + moveAction != null);
+
+        // Invoke event when weapon slot is switched    
+        switchWeaponSlotAction.performed += WeaponSlotSwitched;
 
         // Update input for the first frame
         UpdateInput();
+    }
+
+    private void WeaponSlotSwitched(InputAction.CallbackContext ctx)
+    {
+        //Debug.Log("Switched weapon slot to: " + (int)ctx.ReadValue<float>());
+        OnWeaponSlotSwitched?.Invoke((int)ctx.ReadValue<float>());
     }
 
     private void Update()
@@ -140,6 +155,8 @@ public class PlayerInput : MonoBehaviour
         // Read input from input actions
         MoveInput = moveAction.ReadValue<Vector2>().normalized;
         // LookInput = lookAction.ReadValue<Vector2>() * LookSensitivityMultiplier;
+        // int switchWeaponSlot = (int)switchWeaponSlotAction.ReadValue<float>();
+        // Debug.Log("Switch weapon slot input value: " + switchWeaponSlot);
 
         // // Handle sprint input
         // if (ToggleSprint)
