@@ -7,8 +7,15 @@ public class GameManager : MonoBehaviour
     // Should be created in the first scene and persist through all scenes
 
     public static GameManager instance;
+    public static PlayerStats playerStats;
 
     private void Awake()
+    {
+        InitSingleton();
+        InitSystems();
+    }
+
+    public void InitSingleton()
     {
         if (instance == null)
         {
@@ -20,5 +27,11 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("Duplicate GameManager detected, destroying this instance and object");
             Destroy(gameObject);
         }
+    }
+
+    private void InitSystems()
+    {
+        // Initialize player stats
+        playerStats = new PlayerStats();
     }
 }
