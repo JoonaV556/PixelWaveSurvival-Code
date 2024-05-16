@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 public class PlayerInput : MonoBehaviour
 {
+    public static PlayerInput Instance { get; private set; }
+
     /// <summary>
     /// Wrapper class for input actions to convert input data into a more readable format
     /// </summary>
@@ -51,6 +52,22 @@ public class PlayerInput : MonoBehaviour
     // local references to input actions
     InputAction moveAction;
 
+    private void Awake()
+    {
+        // Check if instance already exists
+        if (Instance == null)
+        {
+            // If no instance exists, this becomes the instance
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // Optionally: make this object persist across scenes
+        }
+        else if (Instance != this)
+        {
+            // If instance already exists and it's not this, destroy this to enforce the singleton pattern
+            Destroy(gameObject);
+        }
+    }
+
     private void OnEnable()
     {
         // Init input action asset and actions
@@ -94,11 +111,11 @@ public class PlayerInput : MonoBehaviour
         // Init input action asset and actions
         inputActionAsset.Enable();
         inputActionAsset.FindActionMap("Player").Enable();
-        Debug.Log("inputactionasset found: " + inputActionAsset != null);
+        // Debug.Log("inputactionasset found: " + inputActionAsset != null);
 
         // Get input actions from input action asset
         moveAction = inputActionAsset.FindAction("Movement");
-        Debug.Log("moveAction found: " + moveAction != null);
+        // Debug.Log("moveAction found: " + moveAction != null);
 
         // Update input for the first frame
         UpdateInput();
