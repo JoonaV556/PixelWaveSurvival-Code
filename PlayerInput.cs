@@ -5,6 +5,10 @@ using UnityEngine.InputSystem;
 
 public class PlayerInput : MonoBehaviour
 {
+    // Reads player input and provides it to other scripts
+    // Only one should ever exist.
+    // Should be created in the first scene and persist through all scenes
+
     public static PlayerInput Instance { get; private set; }
 
     /// <summary>
@@ -63,6 +67,7 @@ public class PlayerInput : MonoBehaviour
         }
         else if (Instance != this)
         {
+            Debug.LogWarning("Duplicate PlayerInput detected, destroying this instance and object");
             // If instance already exists and it's not this, destroy this to enforce the singleton pattern
             Destroy(gameObject);
         }
