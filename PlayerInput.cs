@@ -56,6 +56,8 @@ public class PlayerInput : MonoBehaviour
     // local references to input actions
     InputAction moveAction;
 
+    InputAction cameraZoomAction;
+
     InputAction switchWeaponSlotAction;
 
     public static Action<int> OnWeaponSlotSwitched;
@@ -78,46 +80,6 @@ public class PlayerInput : MonoBehaviour
     }
 
     private void OnEnable()
-    {
-        // Init input action asset and actions
-        inputActionAsset.Enable();
-        inputActionAsset.FindActionMap("Player").Enable();
-
-        // Get input actions from input action asset
-        moveAction = inputActionAsset.FindAction("Movement");
-        switchWeaponSlotAction = inputActionAsset.FindAction("SwitchActiveWeaponSlot");
-
-
-        // sprintAction = inputActionAsset.FindAction("Sprint");
-        // jumpAction = inputActionAsset.FindAction("Jump");
-        // sneakAction = inputActionAsset.FindAction("Sneak");
-        // crouchAction = inputActionAsset.FindAction("Crouch");
-        // leanLeftAction = inputActionAsset.FindAction("LeanLeft");
-        // leanRightAction = inputActionAsset.FindAction("LeanRight");
-        // flashLightAction = inputActionAsset.FindAction("ToggleFlashlight");
-        // lookAction = inputActionAsset.FindAction("Look");
-
-        // // Init button data 
-        // sprintButton = new ButtonInfo(sprintAction);
-        // buttons.Add(sprintButton);
-        // jumpButton = new ButtonInfo(jumpAction);
-        // buttons.Add(jumpButton);
-        // sneakButton = new ButtonInfo(sneakAction);
-        // buttons.Add(sneakButton);
-        // crouchButton = new ButtonInfo(crouchAction);
-        // buttons.Add(crouchButton);
-        // leanLeftButton = new ButtonInfo(leanLeftAction);
-        // buttons.Add(leanLeftButton);
-        // leanRightButton = new ButtonInfo(leanRightAction);
-        // buttons.Add(leanRightButton);
-
-        // Test input action events
-        // sprintAction.started += (ctx) => Debug.Log("Sprint started");
-        // sprintAction.performed += (ctx) => Debug.Log("Sprint performed");
-        // sprintAction.canceled += (ctx) => Debug.Log("Sprint canceled");
-    }
-
-    private void Start()
     {
         // Init input action asset and actions
         inputActionAsset.Enable();

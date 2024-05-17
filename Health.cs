@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -36,21 +34,12 @@ public abstract class Health : MonoBehaviour
     /// </summary>
     public void TakeDamage(float DamageToTake, Transform DamageGiver)
     {
-        // print(gameObject.name + " Took damage");
-        Vector2 DamageGiverPost = DamageGiver.transform.position;
-        OnReceiveDamage?.Invoke(DamageGiver.transform.position);
-        if (currentHealth - DamageToTake <= 0f)
-        {
-            currentHealth = 0f;
-            OnTakeDamage?.Invoke(currentHealth);
-            OnDeath?.Invoke();
-            Die();
-        }
-        else
-        {
-            currentHealth -= DamageToTake;
-            OnTakeDamage?.Invoke(currentHealth);
-        }
+        // Info listeners about damage giver position
+        Vector2 DamageGiverPos = DamageGiver.transform.position;
+        OnReceiveDamage?.Invoke(DamageGiverPos);
+
+        // Take damage
+        TakeDamage(DamageToTake);
     }
 
     /// <summary>
