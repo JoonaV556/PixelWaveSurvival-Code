@@ -48,6 +48,8 @@ public class PlayerInput : MonoBehaviour
     [Range(0f, 10f)]
     public float LookSensitivityMultiplier = 1f;
 
+    public float ZoomSensitivityMultiplier = 1f;
+
     // Properties to get input values, read these from objects which require input
     public static Vector2 MoveInput { get; private set; }
 
@@ -61,6 +63,8 @@ public class PlayerInput : MonoBehaviour
     InputAction switchWeaponSlotAction;
 
     public static Action<int> OnWeaponSlotSwitched;
+
+    public static Action<float> OnCameraZoom;
 
     private void Awake()
     {
@@ -88,10 +92,12 @@ public class PlayerInput : MonoBehaviour
         // Get input actions from input action asset
         moveAction = inputActionAsset.FindAction("Movement");
         switchWeaponSlotAction = inputActionAsset.FindAction("SwitchActiveWeaponSlot");
+        cameraZoomAction = inputActionAsset.FindAction("CameraZoom");
         // Debug.Log("moveAction found: " + moveAction != null);
 
         // Invoke event when weapon slot is switched    
         switchWeaponSlotAction.performed += WeaponSlotSwitched;
+        cameraZoomAction.performed += CameraZoomDetected;
 
         // Update input for the first frame
         UpdateInput();
@@ -101,6 +107,14 @@ public class PlayerInput : MonoBehaviour
     {
         //Debug.Log("Switched weapon slot to: " + (int)ctx.ReadValue<float>());
         OnWeaponSlotSwitched?.Invoke((int)ctx.ReadValue<float>());
+    }
+    private void CameraZoomDetected(InputAction.CallbackContext ctx)
+    {
+        var zoomInput = ctx.ReadValue<float>();
+        // Debug.Log("Camera zoom detected. value: " + ctx.ReadValue<float>());
+        // Make zoom input 1 or -1 (original zoominput might be 120 or -120)
+        var zoomAmount = zoomInput / Math.Abs(zoomInput) * ZoomSensitivityMultiplier;
+        OnCameraZoom?.Invoke(zoomAmount);
     }
 
     private void Update()
