@@ -15,9 +15,9 @@ public class EnemyBehavior : MonoBehaviour
 
     public MonoModifier PathModifier; // Modifier applied to the paths before they are used, optional.
 
-    public float closeToTargetTreshold = 0.2f; // How close to a path point we need to be to consider it reached
+    public float closeToPointTreshold = 0.2f; // How close to a path point we need to be to consider it reached
 
-    public List<Vector2> pathPointsToFollow;
+    public float closeToTargetDistance = 0.9f; // How close to the target object to stop moving
 
     public int pointToFollowIndex = 0; // Index of current target point in current path
 
@@ -25,7 +25,11 @@ public class EnemyBehavior : MonoBehaviour
 
     public static float targetPositionChangeTreshold = 0.45f; // If target moves more than this amount from last path calc position, new path is calculated
 
+    float distanceToTargetObj = 0f; // Distance to target
+
     Vector2 targetLastPathRequestPosition; // Last position of target when path was requested
+
+    public List<Vector2> pathPointsToFollow;
 
     Vector2 MoveTargetDirection = Vector2.zero; // Direction to move towards, supplied to Input component
 
@@ -70,6 +74,20 @@ public class EnemyBehavior : MonoBehaviour
 
         // Make enemy move - Send move direction to enemy character input
         Input.MoveInput = MoveTargetDirection.normalized;
+
+        distanceToTargetObj = Vector2.Distance(transform.position, SeekTargetPosition);
+
+        // Stop moving if we are close enough to target
+        if (distanceToTargetObj < closeToTargetDistance)
+        {
+            // Stop moving
+            Input.MoveInput = Vector2.zero;
+        }
+        else
+        {
+            // Continue moving
+            Input.MoveInput = MoveTargetDirection.normalized;
+        }
     }
 
     /// <summary>
@@ -91,7 +109,7 @@ public class EnemyBehavior : MonoBehaviour
 
         float distanceToTarget = Vector2.Distance(transform.position, pathTargetPosition);
 
-        if (distanceToTarget < closeToTargetTreshold)
+        if (distanceToTarget < closeToPointTreshold)
         {
             bool morePointsToFollow = pointToFollowIndex < pathPointsToFollow.Count - 1;
 
