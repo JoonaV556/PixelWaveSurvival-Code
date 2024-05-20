@@ -10,13 +10,13 @@ public class CharacterMovement : MonoBehaviour
     Player's max speed is controlled by clamping the velocity of the Rigidbody in the "ClampPlayerVelocity"-method. */
 
     [SerializeField, Tooltip("Adjust this to change player's acceleration and movement speed")]
-    private float MovementForce = 900f;
+    private float MovementForce = 600000f; // Default value adjusted for Rigidbody mass of 70kg
 
     [SerializeField, Tooltip("Drag player's rigidbody here")]
     private Rigidbody2D Rigidbody;
 
     [SerializeField, Tooltip("Use this to limit the player movement velocity")]
-    private float MaxVelocity = 1.3f;
+    private float MaxVelocity = 6f; // Default value adjusted for Rigidbody mass of 70kg
 
     protected Vector2 MoveInput = Vector2.zero;
     Vector2 currentVelocity = Vector2.zero;
