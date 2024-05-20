@@ -23,7 +23,7 @@ public class EnemyBehavior : MonoBehaviour
 
     ABPath currentPath; // Current path to follow, casted to APPath for debug drawing (no idea if required)
 
-    public static float targetPositionChangeTreshold = 0.45f; // If target moves more than this amount from last path calc position, new path is calculated
+    public float targetPositionChangeTreshold = 0.45f; // If target moves more than this amount from last path calc position, new path is calculated
 
     float distanceToTargetObj = 0f; // Distance to target
 
@@ -180,7 +180,7 @@ public class EnemyBehavior : MonoBehaviour
 
     private void RequestPath()
     {
-        print("Requesting new path");
+        // print("Requesting new path");
         targetLastPathRequestPosition = SeekTargetPosition;
         seeker.StartPath(transform.position, SeekTargetPosition, OnPathComplete);
     }

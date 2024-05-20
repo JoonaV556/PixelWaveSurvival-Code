@@ -22,6 +22,8 @@ public class CharacterMovement : MonoBehaviour
     Vector2 currentVelocity = Vector2.zero;
     public bool EnableMovement = true;
 
+    public bool ClampVelocity = true;
+
     // All movement logic is called here
     private void FixedUpdate()
     {
@@ -36,7 +38,7 @@ public class CharacterMovement : MonoBehaviour
             MovePlayer();
         }
         // Clamp players velocity to prevent accelerating to too high speeds
-        ClampPlayerVelocity();
+        if (ClampVelocity) ClampMoveVelocity();
     }
 
     protected virtual void FetchInput() { }
@@ -48,7 +50,7 @@ public class CharacterMovement : MonoBehaviour
     }
 
     // Adjust player's max movement speed
-    private void ClampPlayerVelocity()
+    private void ClampMoveVelocity()
     {
         // Calculate clamped velocity
         currentVelocity = Rigidbody.velocity;
@@ -56,6 +58,8 @@ public class CharacterMovement : MonoBehaviour
         float clampedY = Mathf.Clamp(currentVelocity.y, -MaxVelocity, MaxVelocity);
         // Clamp velocity
         Rigidbody.velocity = new Vector2(clampedX, clampedY);
+
+        var vec = Vector2.zero;
     }
 
     // Move player

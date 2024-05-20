@@ -15,7 +15,7 @@ public abstract class Health : MonoBehaviour
     /// <summary>
     /// How much health the object has currently
     /// </summary>
-    protected float currentHealth;
+    public float currentHealth;
 
     #endregion
 
