@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 /// <summary>
 /// Controls player movement.
 /// </summary>
-public class PlayerMovement : MonoBehaviour
+public class CharacterMovement : MonoBehaviour
 {
     /* Implements movement by using AddForce() on player's RigidBody2D in the "MovePlayer"-method.
     Player's max speed is controlled by clamping the velocity of the Rigidbody in the "ClampPlayerVelocity"-method. */
@@ -18,7 +18,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField, Tooltip("Use this to limit the player movement velocity")]
     private float MaxVelocity = 1.3f;
 
-    private Vector2 MoveInput = Vector2.zero;
+    protected Vector2 MoveInput = Vector2.zero;
     Vector2 currentVelocity = Vector2.zero;
     public bool EnableMovement = true;
 
@@ -39,10 +39,12 @@ public class PlayerMovement : MonoBehaviour
         ClampPlayerVelocity();
     }
 
+    protected virtual void FetchInput() { }
+
     private void Update()
     {
         // Fetch input 
-        MoveInput = PlayerInput.MoveInput;
+        FetchInput();
     }
 
     // Adjust player's max movement speed

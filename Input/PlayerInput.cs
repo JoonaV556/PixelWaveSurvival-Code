@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerInput : MonoBehaviour
+public class PlayerInput : CharacterInput
 {
     // Reads player input and provides it to other scripts
     // Only one should ever exist.
