@@ -72,9 +72,6 @@ public class EnemyBehavior : MonoBehaviour
         // Update movement target position
         MoveTargetDirection = Direction(transform.position, pathTargetPosition).normalized;
 
-        // Make enemy move - Send move direction to enemy character input
-        Input.MoveInput = MoveTargetDirection.normalized;
-
         distanceToTargetObj = Vector2.Distance(transform.position, SeekTargetPosition);
 
         // Stop moving if we are close enough to target
@@ -88,6 +85,9 @@ public class EnemyBehavior : MonoBehaviour
             // Continue moving
             Input.MoveInput = MoveTargetDirection.normalized;
         }
+
+        // Update look input
+        Input.LookInput = Direction(transform.position, SeekTargetPosition).normalized;
     }
 
     /// <summary>

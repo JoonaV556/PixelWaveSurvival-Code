@@ -2,6 +2,7 @@ namespace AttackEffects
 {
     using UnityEngine;
     using System;
+    using System.Collections;
 
     [Serializable]
     public abstract class AttackEffect
