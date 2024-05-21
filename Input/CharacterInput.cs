@@ -10,10 +10,6 @@ public class CharacterInput : MonoBehaviour
     // Movement input direction
     public Vector2 MoveInput;
 
-    public Vector2 LookInput
-    {
-        get { return LookInput.normalized; }
-        set { }
-    }
+    public Vector2 LookInput;
 
 }

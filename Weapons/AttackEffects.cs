@@ -12,6 +12,9 @@ namespace AttackEffects
 
     public class KnockbackEffect : AttackEffect
     {
+        // TODO 
+        // Add support for 3d knockback
+
         /// <summary>
         /// Attempts to apply knockback to target object by adding force to its Rigidbody2D component.
         /// </summary>
@@ -36,7 +39,7 @@ namespace AttackEffects
                 float scaledKnockBackForce = knockbackForce * rb.mass;
 
                 // Apply knockback to target object
-                Debug.Log("Applied knockback to target object: " + targetObject.name);
+                // Debug.Log("Applied knockback to target object: " + targetObject.name);
                 rb.AddForce(knockbackDirection.normalized * scaledKnockBackForce, ForceMode2D.Impulse);
             }
         }

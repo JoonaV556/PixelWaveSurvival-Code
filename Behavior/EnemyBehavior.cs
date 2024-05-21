@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
+using JoonaUtils;
 using Pathfinding;
 using UnityEngine;
 
@@ -7,9 +9,18 @@ using UnityEngine;
 /// </summary>
 public class EnemyBehavior : MonoBehaviour
 {
+    // This is just a really messy placeholder system for driving zombie movement and other actions. 
+
+    // Current responsibilities:
+    // - Pathfinding towards palyer
+    // - Attempting attacks when close to player
+
+    // A first path to player is requested in Start(), new paths are requested once player moves enough from last path request position
+
+
     public Seeker seeker; // Seeker component. Used for pathfinding
 
-    public CharacterInput Input; // Input component of the enemy character. MoveInput vector is updated for movement purposes
+    public EnemyInput Input; // Input component of the enemy character. MoveInput vector is updated for movement purposes
 
     public Transform target; // Player etc.
 
@@ -27,6 +38,8 @@ public class EnemyBehavior : MonoBehaviour
 
     float distanceToTargetObj = 0f; // Distance to target
 
+    float attackCooldown = 1f; // Cooldown for attack attempts in seconds. (Attack scripts probs have their own cooldowns, this is just for not invoking attacks every frame)
+
     Vector2 targetLastPathRequestPosition; // Last position of target when path was requested
 
     public List<Vector2> pathPointsToFollow;
@@ -37,8 +50,15 @@ public class EnemyBehavior : MonoBehaviour
 
     Vector2 SeekTargetPosition = Vector2.zero; // Actual position of the target obejct in world space. Updated every frame.
 
+    Vector2 thisPosition = Vector2.zero;
+
+    bool closeToTarget = false;
+
+    Coroutine attackCooldownCoroutine;
+
     private void Start()
     {
+        Input = GetComponent<EnemyInput>();
         // Find the target position - player or smthng else - new paths are calculated to this position
         SeekTargetPosition = target.position;
         // Request a path to the target
@@ -47,6 +67,8 @@ public class EnemyBehavior : MonoBehaviour
 
     private void Update()
     {
+        thisPosition = new Vector2(transform.position.x, transform.position.y);
+
         // Find the target position - player or smthng else - new paths are calculated to this position
         SeekTargetPosition = target.position;
 
@@ -70,12 +92,20 @@ public class EnemyBehavior : MonoBehaviour
         // Track movement along the path. If we have reached the current path point, move to the next path point
         TrackPath();
         // Update movement target position
-        MoveTargetDirection = Direction(transform.position, pathTargetPosition).normalized;
+        MoveTargetDirection = Convenience.Direction2D(transform.position, pathTargetPosition);
 
         distanceToTargetObj = Vector2.Distance(transform.position, SeekTargetPosition);
 
+        // Send input to enemyinput
+        SendInput();
+
+    }
+
+    private void SendInput()
+    {
         // Stop moving if we are close enough to target
-        if (distanceToTargetObj < closeToTargetDistance)
+        closeToTarget = distanceToTargetObj < closeToTargetDistance;
+        if (closeToTarget)
         {
             // Stop moving
             Input.MoveInput = Vector2.zero;
@@ -86,8 +116,17 @@ public class EnemyBehavior : MonoBehaviour
             Input.MoveInput = MoveTargetDirection.normalized;
         }
 
-        // Update look input
-        Input.LookInput = Direction(transform.position, SeekTargetPosition).normalized;
+        // Look at player
+        Input.LookInput = Convenience.Direction2D(thisPosition, SeekTargetPosition);
+
+        // Attack if close enough
+        bool shouldAttack = closeToTarget && attackCooldownCoroutine == null;
+        if (shouldAttack)
+        {
+            print("Attempted main attack");
+            Input.AttemptMainAttack();
+            attackCooldownCoroutine = StartCoroutine(CooldownCoroutine(attackCooldown));
+        }
     }
 
     /// <summary>
@@ -131,9 +170,6 @@ public class EnemyBehavior : MonoBehaviour
     {
         // The path is now calculated!
 
-        // Track the last position of the target when path was requested - used for checking if target has moved
-        targetLastPathRequestPosition = target.position;
-
         if (p.error)
         {
             Debug.LogError("Path failed: " + p.errorLog);
@@ -153,20 +189,8 @@ public class EnemyBehavior : MonoBehaviour
         // Make enemy input move towards next point in path
         pathPointsToFollow = p.vectorPath.ConvertAll(v => new Vector2(v.x, v.y)); // Get the path points as Vector2
         pathTargetPosition = pathPointsToFollow[1]; // Assign position to mova towards
-        MoveTargetDirection = Direction(transform.position, pathTargetPosition).normalized; // Calculate direction to the target - the direction is sent to enemys character input component for driving movement
+        MoveTargetDirection = Convenience.Direction2D(transform.position, pathTargetPosition); // Calculate direction to the target - the direction is sent to enemys character input component for driving movement
         pointToFollowIndex = 1; // Track the current point in path
-    }
-
-    // TODO - Make static util
-    /// <summary>
-    /// Returns direction vector pointing from one point to another
-    /// </summary>
-    /// <param name="start">start point</param>
-    /// <param name="end">target point</param>
-    /// <returns>Direction as Vector2. Not normalized.</returns>
-    public Vector2 Direction(Vector2 start, Vector2 end)
-    {
-        return end - start;
     }
 
     private void DrawDebugLines(Path p)
@@ -183,5 +207,11 @@ public class EnemyBehavior : MonoBehaviour
         // print("Requesting new path");
         targetLastPathRequestPosition = SeekTargetPosition;
         seeker.StartPath(transform.position, SeekTargetPosition, OnPathComplete);
+    }
+
+    private IEnumerator CooldownCoroutine(float cooldownLength)
+    {
+        yield return new WaitForSeconds(cooldownLength);
+        attackCooldownCoroutine = null;
     }
 }

@@ -85,6 +85,7 @@ public class ZombieAttack : MonoBehaviour
         // If attack is succesful, start cooldown
         if (TryToDealDamageToPlayer(target, hitDamage, HitKnockbackForce))
         {
+            print("Zombie did body attack");
             hitCooldownCoroutine = StartCoroutine(HitCooldownRoutine());
         };
     }
@@ -111,10 +112,10 @@ public class ZombieAttack : MonoBehaviour
         // Try to damage each object hit
         foreach (var hit in hits)
         {
-            Debug.Log("Zombie main attack attempted to hit: " + hit.gameObject.name);
             // If attack is succesful, start cooldown
             if (TryToDealDamageToPlayer(hit.gameObject, attackDamage, AttackKnockbackForce))
             {
+                print("Zombie did main attack");
                 attackCooldownCoroutine = StartCoroutine(AttackCooldownRoutine());
             };
         }
