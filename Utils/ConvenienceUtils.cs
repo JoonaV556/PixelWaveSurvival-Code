@@ -12,7 +12,7 @@ namespace JoonaUtils
         /// <returns>Direction as Vector2. Not normalized.</returns>
         public static Vector2 Direction2D(Vector2 start, Vector2 end)
         {
-            return end - start.normalized;
+            return (end - start).normalized;
         }
     }
 }

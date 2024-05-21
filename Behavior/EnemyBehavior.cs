@@ -32,7 +32,7 @@ public class EnemyBehavior : MonoBehaviour
 
     public int pointToFollowIndex = 0; // Index of current target point in current path
 
-    ABPath currentPath; // Current path to follow, casted to APPath for debug drawing (no idea if required)
+    List<Vector3> currentPath; // Current path to follow, casted to APPath for debug drawing (no idea if required)
 
     public float targetPositionChangeTreshold = 0.45f; // If target moves more than this amount from last path calc position, new path is calculated
 
@@ -42,7 +42,7 @@ public class EnemyBehavior : MonoBehaviour
 
     Vector2 targetLastPathRequestPosition; // Last position of target when path was requested
 
-    public List<Vector2> pathPointsToFollow;
+    public List<Vector3> pathPointsToFollow;
 
     Vector2 MoveTargetDirection = Vector2.zero; // Direction to move towards, supplied to Input component
 
@@ -72,17 +72,6 @@ public class EnemyBehavior : MonoBehaviour
         // Find the target position - player or smthng else - new paths are calculated to this position
         SeekTargetPosition = target.position;
 
-        // Check if its time to request a new path (target has moved enough)
-        if (targetLastPathRequestPosition != null)
-        {
-            bool targetMovedEnough = GetTargetMovedEnough();
-
-            if (targetMovedEnough)
-            {
-                RequestPath();
-            }
-        }
-
         // Draw lines if we have a path
         if (currentPath != null)
         {
@@ -91,6 +80,7 @@ public class EnemyBehavior : MonoBehaviour
 
         // Track movement along the path. If we have reached the current path point, move to the next path point
         TrackPath();
+
         // Update movement target position
         MoveTargetDirection = Convenience.Direction2D(transform.position, pathTargetPosition);
 
@@ -98,7 +88,17 @@ public class EnemyBehavior : MonoBehaviour
 
         // Send input to enemyinput
         SendInput();
+    }
 
+    private void LateUpdate()
+    {
+        // Check if its time to request a new path (target has moved enough)
+        bool targetMovedEnough = GetTargetMovedEnough();
+
+        if (targetMovedEnough)
+        {
+            RequestPath();
+        }
     }
 
     private void SendInput()
@@ -113,7 +113,7 @@ public class EnemyBehavior : MonoBehaviour
         else
         {
             // Continue moving
-            Input.MoveInput = MoveTargetDirection.normalized;
+            Input.MoveInput = Convenience.Direction2D(thisPosition, pathTargetPosition);
         }
 
         // Look at player
@@ -123,7 +123,6 @@ public class EnemyBehavior : MonoBehaviour
         bool shouldAttack = closeToTarget && attackCooldownCoroutine == null;
         if (shouldAttack)
         {
-            print("Attempted main attack");
             Input.AttemptMainAttack();
             attackCooldownCoroutine = StartCoroutine(CooldownCoroutine(attackCooldown));
         }
@@ -140,11 +139,12 @@ public class EnemyBehavior : MonoBehaviour
 
     private void TrackPath()
     {
-        // Track if we have reached the current target
-        if (pathTargetPosition == null)
+        if (pathPointsToFollow == null || pathPointsToFollow.Count == 0)
         {
             return;
         }
+
+        // Track if we have reached the current path point
 
         float distanceToTarget = Vector2.Distance(transform.position, pathTargetPosition);
 
@@ -154,13 +154,15 @@ public class EnemyBehavior : MonoBehaviour
 
             if (morePointsToFollow)
             {
+                // Remove first point in the path points list 
                 pointToFollowIndex++;
                 pathTargetPosition = pathPointsToFollow[pointToFollowIndex];
+                // print("Moving to next point in path.");
             }
             else
             {
                 // Path end has been reached
-                Debug.Log("Reached path end.");
+                // Debug.Log("Reached path end.");
             }
         }
     }
@@ -169,7 +171,7 @@ public class EnemyBehavior : MonoBehaviour
     private void OnPathComplete(Path p)
     {
         // The path is now calculated!
-
+        // print("Path received");
         if (p.error)
         {
             Debug.LogError("Path failed: " + p.errorLog);
@@ -183,22 +185,27 @@ public class EnemyBehavior : MonoBehaviour
         }
 
         // Draw debug lines
-        currentPath = p as ABPath;
-        DrawDebugLines(p);
+        currentPath = new();
+        foreach (var point in p.vectorPath)
+        {
+            currentPath.Add(point);
+        }
+
+        DrawDebugLines(currentPath);
 
         // Make enemy input move towards next point in path
-        pathPointsToFollow = p.vectorPath.ConvertAll(v => new Vector2(v.x, v.y)); // Get the path points as Vector2
-        pathTargetPosition = pathPointsToFollow[1]; // Assign position to mova towards
+        pathPointsToFollow = p.vectorPath; // Get the path points as Vector2
+        pathTargetPosition = pathPointsToFollow[0]; // Assign position to mova towards
+        pointToFollowIndex = 0; // Track the current point in path
         MoveTargetDirection = Convenience.Direction2D(transform.position, pathTargetPosition); // Calculate direction to the target - the direction is sent to enemys character input component for driving movement
-        pointToFollowIndex = 1; // Track the current point in path
     }
 
-    private void DrawDebugLines(Path p)
+    private void DrawDebugLines(List<Vector3> currentPath)
     {
         // Draw the path in the scene view for 10 seconds
-        for (int i = 0; i < currentPath.vectorPath.Count - 1; i++)
+        for (int i = 0; i < currentPath.Count - 1; i++)
         {
-            Debug.DrawLine(currentPath.vectorPath[i], currentPath.vectorPath[i + 1], Color.red, 0.5f);
+            Debug.DrawLine(currentPath[i], currentPath[i + 1], Color.red, 0.5f);
         }
     }
 

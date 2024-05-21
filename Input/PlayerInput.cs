@@ -51,7 +51,6 @@ public class PlayerInput : CharacterInput
     public float ZoomSensitivityMultiplier = 1f;
 
     // Properties to get input values, read these from objects which require input
-    public static Vector2 MoveInput { get; private set; }
 
     public List<ButtonInfo> buttons = new List<ButtonInfo>();
 
