@@ -58,7 +58,7 @@ public class ZombieAttack : MonoBehaviour
         bool shouldHitPlayer = target.CompareTag("Player") && health != null && hitCooldownCoroutine == null;
         if (shouldHitPlayer)
         {
-            health.TakeDamage(damageAmount, gameObject);
+            health.TakeDamage(damageAmount);
 
             // Apply hit knockback to target
             var knockback = new KnockbackEffect(

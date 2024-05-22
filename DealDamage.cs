@@ -25,7 +25,7 @@ public class DealDamage : MonoBehaviour
         Health otherObjHealth = otherCollider.gameObject.GetComponent<Health>();
         if (otherObjHealth != null && !dealtDamage)
         {
-            otherObjHealth.TakeDamage(DamageToDeal, transform);
+            otherObjHealth.TakeDamage(DamageToDeal);
             dealtDamage = true;
             AfterDamageDealt();
         }
