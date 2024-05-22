@@ -30,26 +30,14 @@ public abstract class Health : MonoBehaviour
     }
 
     /// <summary>
-    /// Used to deal damage and knockback to this health component
-    /// </summary>
-    public void TakeDamage(float DamageToTake, Transform DamageGiver)
-    {
-        // Info listeners about damage giver position
-        Vector2 DamageGiverPos = DamageGiver.transform.position;
-        OnReceiveDamage?.Invoke(DamageGiverPos);
-
-        // Take damage
-        TakeDamage(DamageToTake);
-    }
-
-    /// <summary>
     /// Used to deal damage to this health component
     /// </summary>
-    public void TakeDamage(float DamageToTake)
+    public void TakeDamage(float DamageToTake, GameObject damageGiver)
     {
         // print(gameObject.name + " Took damage");
         if (currentHealth - DamageToTake <= 0f)
         {
+            print(gameObject.name + " Took damage from: " + damageGiver.name);
             currentHealth = 0f;
             OnTakeDamage?.Invoke(currentHealth);
             OnDeath?.Invoke();

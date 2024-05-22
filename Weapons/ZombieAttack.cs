@@ -54,13 +54,11 @@ public class ZombieAttack : MonoBehaviour
 
     private bool TryToDealDamageToPlayer(GameObject target, float damageAmount, float knockbackForce)
     {
-        gameObject.TryGetComponent(out Health health);
+        target.TryGetComponent(out Health health);
         bool shouldHitPlayer = target.CompareTag("Player") && health != null && hitCooldownCoroutine == null;
         if (shouldHitPlayer)
         {
-            // Deal damage to target
-            // print("Zombie hit player");
-            health.TakeDamage(damageAmount, transform);
+            health.TakeDamage(damageAmount, gameObject);
 
             // Apply hit knockback to target
             var knockback = new KnockbackEffect(
