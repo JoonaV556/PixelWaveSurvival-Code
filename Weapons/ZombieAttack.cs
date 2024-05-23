@@ -30,16 +30,27 @@ public class ZombieAttack : MonoBehaviour
     public float AttackCooldown = 1f; // Minimum time in seconds between attacks
     public float MainAttackRadius = 0.5f;
 
+    public bool EnableAttackGizmos = false;
+
+    [Tooltip("How much distance is added to attack position in front of zombie in addition to radius")] public float AttackDistanceAddedToRadius = 0.3f;
+
+    Vector2 attackPos = Vector2.zero;
+
     Coroutine hitCooldownCoroutine;
 
     Coroutine attackCooldownCoroutine;
 
     EnemyInput input;
 
-    private void Start()
+    private void OnEnable()
     {
         input = GetComponent<EnemyInput>();
         input.OnMainAttackAttempted += AttemptMainAttack;
+    }
+
+    private void OnDisable()
+    {
+        input.OnMainAttackAttempted -= AttemptMainAttack;
     }
 
     public void OnCollisionEnter2D(Collision2D collision)
@@ -55,7 +66,7 @@ public class ZombieAttack : MonoBehaviour
     private bool TryToDealDamageToPlayer(GameObject target, float damageAmount, float knockbackForce)
     {
         target.TryGetComponent(out Health health);
-        bool shouldHitPlayer = target.CompareTag("Player") && health != null && hitCooldownCoroutine == null;
+        bool shouldHitPlayer = target.CompareTag("Player") && health != null;
         if (shouldHitPlayer)
         {
             health.TakeDamage(damageAmount);
@@ -75,6 +86,7 @@ public class ZombieAttack : MonoBehaviour
     // Damages other characters if they touch the zombie
     private void AttemptBodyAttack(GameObject target)
     {
+        // print("Zombie attempted body attack");
         // Check if attack is on cooldown
         if (hitCooldownCoroutine != null)
         {
@@ -90,6 +102,7 @@ public class ZombieAttack : MonoBehaviour
     // Does the zombies directional main attack
     private void AttemptMainAttack()
     {
+        print("Zombie attempted main attack");
         // Check if attack is on cooldown
         if (attackCooldownCoroutine != null)
         {
@@ -97,11 +110,11 @@ public class ZombieAttack : MonoBehaviour
         }
 
         var attackDirection = input.LookInput; // Get from input   
-        var attackposition = new Vector2(transform.position.x, transform.position.y) + attackDirection * MainAttackRadius; // Calculate from look direction - direction.normalized * circle radius
+        attackPos = new Vector2(transform.position.x, transform.position.y) + attackDirection * (MainAttackRadius + AttackDistanceAddedToRadius); // Calculate from look direction - direction.normalized * circle radius
 
         // Check for objects in attack direction
         var hits = Physics2D.OverlapCircleAll(
-            attackposition,
+            attackPos,
             MainAttackRadius,
             AttackLayers
             );
@@ -115,6 +128,17 @@ public class ZombieAttack : MonoBehaviour
                 attackCooldownCoroutine = StartCoroutine(AttackCooldownRoutine());
             };
         }
+    }
+
+    // Debugging only - Draw attack sphere with main attack
+    private void OnDrawGizmos()
+    {
+        if (!EnableAttackGizmos)
+        {
+            return;
+        }
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(attackPos, MainAttackRadius);
     }
 
     private IEnumerator HitCooldownRoutine()
