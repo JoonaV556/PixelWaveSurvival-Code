@@ -1,3 +1,5 @@
+using UnityEngine;
+
 /// <summary>
 /// Tracks player stats such as experience and cash.
 /// </summary>
@@ -19,9 +21,21 @@ public class PlayerStats
     /// </summary>
     protected virtual void Initialize()
     {
-        // Subscribe to events to react to enemy kills etc.
-        // Enemy.OnEnemykilled += AddExperience;
-        // Enemy.OnEnemykilled += AddCash;
+        GameEvents.OnEnemyDroppedXpAndExperience += HandleXpAndCashDropped;
+    }
+
+    // Destructor
+    ~PlayerStats()
+    {
+        // Cleanup code here
+        GameEvents.OnEnemyDroppedXpAndExperience -= HandleXpAndCashDropped;
+    }
+
+    private void HandleXpAndCashDropped(float xp, int cash)
+    {
+        AddExperience(xp);
+        AddCash(cash);
+        Debug.Log("PlayerStats: Player received " + xp + " experience and " + cash + " cash");
     }
 
     public void AddExperience(float amount)
