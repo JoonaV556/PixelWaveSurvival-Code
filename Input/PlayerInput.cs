@@ -61,9 +61,16 @@ public class PlayerInput : CharacterInput
 
     InputAction switchWeaponSlotAction;
 
+    InputAction lookAction;
+
     public static Action<int> OnWeaponSlotSwitched;
 
     public static Action<float> OnCameraZoom;
+
+    /// <summary>
+    /// Look position in screen space (Mouse position)
+    /// </summary>
+    public static Vector2 LookPositionInput = Vector2.zero;
 
     private void Awake()
     {
@@ -92,6 +99,7 @@ public class PlayerInput : CharacterInput
         moveAction = inputActionAsset.FindAction("Movement");
         switchWeaponSlotAction = inputActionAsset.FindAction("SwitchActiveWeaponSlot");
         cameraZoomAction = inputActionAsset.FindAction("CameraZoom");
+        lookAction = inputActionAsset.FindAction("Look");
         // Debug.Log("moveAction found: " + moveAction != null);
 
         // Invoke event when weapon slot is switched    
@@ -129,6 +137,8 @@ public class PlayerInput : CharacterInput
     {
         // Read input from input actions
         MoveInput = moveAction.ReadValue<Vector2>().normalized;
+        LookPositionInput = lookAction.ReadValue<Vector2>();
+
         // LookInput = lookAction.ReadValue<Vector2>() * LookSensitivityMultiplier;
         // int switchWeaponSlot = (int)switchWeaponSlotAction.ReadValue<float>();
         // Debug.Log("Switch weapon slot input value: " + switchWeaponSlot);
