@@ -7,7 +7,7 @@ public class GameManager : MonoBehaviour
     // Should be created in the first scene and persist through all scenes
 
     public static GameManager instance;
-    public static PlayerStats playerStats;
+    public static PlayerData PlayerData;
 
     private void Awake()
     {
@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
 
     private void InitSystems()
     {
-        // Initialize player stats
-        playerStats = new PlayerStats();
+        // Initialize player data
+        PlayerData = new PlayerData();
     }
 }
