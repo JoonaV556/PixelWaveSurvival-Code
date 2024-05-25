@@ -1,8 +1,11 @@
 Pixel Wave Survival Game
 
-This a public repo for all code used in a new game project. Includes only code written by me. Scripts from external packages used in the project are not included.
+This a public repo for all code used in a new game project being built with Unity.
 
-Packages required for all scripts to work:
+Includes only code written by me. 
+Scripts from external packages used in the project are not included.
+
+Critical packages required for some scripts:
 - A* pathfinding project pro 
 - Input System
 
