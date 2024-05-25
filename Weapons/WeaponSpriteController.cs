@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using JoonaUtils;
 using UnityEngine;
 
@@ -8,7 +6,7 @@ public class WeaponSpriteController : MonoBehaviour
     // Points weapon towards mouse position
     // Flips weapon sprite when player is looking left and right, so weapon orientation looks always right
 
-    public Vector3 WeaponRotation;
+    public Vector3 WeaponRotation; // Debugging - remove later
 
     public Transform WeaponBodyPivotTransform;
 
@@ -18,15 +16,13 @@ public class WeaponSpriteController : MonoBehaviour
     public bool FlipSpriteOnHorizontalAxis = true;
     public bool FlipSpriteYOffsetOnHorizontalAxis = true;
 
-    bool weaponsSpriteHasYOffset = false;
-
     // TODO
     // Get sprite object y offset at start
     // If sprite object has any offset on y axis, flip the offset to keep weapon on same elevation on left and right
 
     private void Start()
     {
-        weaponsSpriteHasYOffset = WeaponSpriteRenderer.transform.position.y != 0f;
+        weaponsSpriteHasYOffset = WeaponSpriteRenderer.transform.localPosition.y != 0f;
     }
 
     private void Update()
@@ -68,10 +64,12 @@ public class WeaponSpriteController : MonoBehaviour
         }
     }
 
-    // Flips the y offset of the weapon sprite to keep sprite on same elevation on left and right side
-    // WIP - not working as intended
+    // Flips the y offset of the weapon sprite to keep sprite on same elevation on left and right side (if using sprite flipping)
+    bool offsetFlipped = false;
+    bool weaponsSpriteHasYOffset = false;
     private void FlipSpritePositionYOffset(bool shouldFlipSpriteYOffset)
     {
+        // Do nothing if weapon sprite has no y offset
         if (!weaponsSpriteHasYOffset)
         {
             return;
@@ -79,28 +77,63 @@ public class WeaponSpriteController : MonoBehaviour
 
         if (shouldFlipSpriteYOffset)
         {
-            var flippedYOffset = -1 * WeaponSpriteRenderer.transform.position.y;
-            WeaponSpriteRenderer.transform.position = new Vector3(WeaponSpriteRenderer.transform.position.x, flippedYOffset, WeaponSpriteRenderer.transform.position.z);
+            // Prevent flipping offset if its already flipped
+            if (offsetFlipped)
+            {
+                return;
+            }
+            // Flip
+            var flippedYOffset = -1 * WeaponSpriteRenderer.transform.localPosition.y;
+
+            WeaponSpriteRenderer.transform.localPosition = new Vector3(
+                WeaponSpriteRenderer.transform.localPosition.x,
+                flippedYOffset,
+                WeaponSpriteRenderer.transform.localPosition.z
+                );
+            offsetFlipped = true;
+            Debug.Log("Flipped offset");
         }
         else
         {
-            var flippedYOffset = -1 * WeaponSpriteRenderer.transform.position.y;
-            WeaponSpriteRenderer.transform.position = new Vector3(WeaponSpriteRenderer.transform.position.x, flippedYOffset, WeaponSpriteRenderer.transform.position.z);
+            // Prevent flipping offset if its already flipped
+            if (!offsetFlipped)
+            {
+                return;
+            }
+            // Flip
+            var flippedYOffset = -1 * WeaponSpriteRenderer.transform.localPosition.y;
+
+            WeaponSpriteRenderer.transform.localPosition = new Vector3(
+                WeaponSpriteRenderer.transform.localPosition.x,
+                flippedYOffset,
+                WeaponSpriteRenderer.transform.localPosition.z
+                );
+            offsetFlipped = false;
+            Debug.Log("Unflipped offset");
         }
     }
 
     // Flips weapon sprite when player is looking left and right to keep gun barrel pointing outwards from player
+    bool weaponSpriteFlipped = false;
     private void FlipWeaponSpriteOnHorizontal(bool shouldFlipSprite)
     {
         if (shouldFlipSprite)
         {
-            WeaponSpriteRenderer.flipY = true;
-            WeaponSpriteRenderer.flipX = true;
+            if (!weaponSpriteFlipped)
+            {
+                WeaponSpriteRenderer.flipY = true;
+                WeaponSpriteRenderer.flipX = true;
+                weaponSpriteFlipped = true;
+            }
         }
         else
         {
-            WeaponSpriteRenderer.flipY = false;
-            WeaponSpriteRenderer.flipX = true;
+            if (weaponSpriteFlipped)
+            {
+                WeaponSpriteRenderer.flipY = false;
+                WeaponSpriteRenderer.flipX = true;
+                weaponSpriteFlipped = false;
+            }
         }
     }
 
