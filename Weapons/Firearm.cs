@@ -18,10 +18,10 @@ public class Firearm : MonoBehaviour
 
     // Fetches firearm data from firearm scriptable objects
 
-    // Requires Ammoholder for reloads and ammo tracking
+    // Requires AmmunitionHolder for reloads and ammo tracking
 
     int maxAmmo;
-    int currentAmmo;
+    int currentAmmo; // Ammo in current magazine
     float fireRate; // Rounds per minute
 
     FireMode fireMode; // Current fire mode
