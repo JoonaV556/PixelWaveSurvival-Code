@@ -16,13 +16,33 @@ public enum AmmunitionType
     SMG
 }
 
+/// <summary>
+/// Universal firearm script for all kinds of guns/firearms
+/// </summary>
 public class Firearm : MonoBehaviour
 {
-    // Handles gun firing logic
+    /*
 
-    // Fetches firearm data from firearm scriptable objects
+    Universal firearm script for all kinds of guns/firearms
 
-    // Requires AmmunitionHolder for reloads and ammo tracking
+    Features:
+    - Firemodes (Semi, Full auto, Burst)
+    - Reloads (Partial and full reloads)
+    - Modular/swappable ammo tracking (Easy to implement custom ammo tracking)
+    - Easily swappable input sources 
+    - Fire mode switching
+    - Dry fire (single hammer hit after emptying the magazine)
+    - Events for shot fired and dry fire
+    - Supports fetching weapon data from custom sources
+    
+    Rounds per minute = (x)
+    Rounds per second  = (y) = x / 60
+    Time between each round = 1 / y
+
+    TODO / WIP
+    - Implement fired projectiles
+
+    */
 
     public static Action<Firearm> OnShotFired;
     public static Action<Firearm> OnDryFire;
@@ -58,9 +78,9 @@ public class Firearm : MonoBehaviour
     Coroutine fullAutoRoutine;
     Coroutine reloadRoutine;
 
-    AmmunitionHolder ammunitionHolder;
+    AmmunitionHolder ammunitionHolder; // Swap this property (+ any references to it) for custom ammo handling
 
-    // Remove later
+    // Remove later - Creates simulated weapon data
     private void DebugInit()
     {
         currentAmmo = 50;
@@ -104,6 +124,7 @@ public class Firearm : MonoBehaviour
         }
     }
 
+    #region InputReactions
     private void OnReloadPressed()
     {
         if (CanReload())
@@ -171,6 +192,7 @@ public class Firearm : MonoBehaviour
     {
         tryingToFire = false;
     }
+    #endregion
 
     // Initializes gun data. Gun cannot be used until initialized, unless using debug init
     private void Initialize()
@@ -196,9 +218,52 @@ public class Firearm : MonoBehaviour
         //print("Fired a round");
     }
 
-    // Rounds per minute x : 700
-    // Rounds per second  y : x / 60
-    // Time between each round : 1 / y
+    private bool CanReload()
+    {
+        return !firingFullAuto && !firingBurst && !reloading && ammunitionHolder.ammunition[ammunitionType] > 0;
+    }
+
+    private bool AmmoLeftInMagazine()
+    {
+        if (!initialized) return false;
+
+        return currentAmmo > 0;
+    }
+
+    private void Reload()
+    {
+        if (!initialized) return;
+
+        var hasEnoughAmmo = ammunitionHolder.ammunition[ammunitionType] >= maxAmmo;
+
+        int requiredAmmo = maxAmmo - currentAmmo;
+
+        if (hasEnoughAmmo)
+        {
+            // Reload to max ammo
+            ammunitionHolder.ammunition[ammunitionType] -= requiredAmmo;
+            currentAmmo = maxAmmo;
+            // print("Reloaded full mag. Ammo left in inventory: " + ammunitionHolder.ammunition[ammunitionType]);
+        }
+        else
+        {
+            // Reload partial mag
+            currentAmmo += ammunitionHolder.ammunition[ammunitionType];
+            ammunitionHolder.ammunition[ammunitionType] = 0;
+            // print("Reloaded partial mag. Ammo left in inventory: " + ammunitionHolder.ammunition[ammunitionType]);
+        }
+    }
+
+    private void SwitchFireMode()
+    {
+        if (!initialized) return;
+
+        // Switches the fire mode of the weapon
+        int currentIndex = Array.IndexOf(possibleFireModes, fireMode);
+        int nextIndex = (currentIndex + 1) % possibleFireModes.Length;
+        fireMode = possibleFireModes[nextIndex];
+    }
+
     private IEnumerator FullAutoCoroutine()
     {
         // Cache wait for preventing unnecessary garbage
@@ -271,54 +336,6 @@ public class Firearm : MonoBehaviour
 
         // Done reloading
         reloading = false;
-        reloadPending = false;
         yield break;
     }
-
-    private bool CanReload()
-    {
-        return !firingFullAuto && !firingBurst && !reloading && ammunitionHolder.ammunition[ammunitionType] > 0;
-    }
-
-    private bool AmmoLeftInMagazine()
-    {
-        if (!initialized) return false;
-
-        return currentAmmo > 0;
-    }
-
-    private void Reload()
-    {
-        if (!initialized) return;
-
-        var hasEnoughAmmo = ammunitionHolder.ammunition[ammunitionType] >= maxAmmo;
-
-        int requiredAmmo = maxAmmo - currentAmmo;
-
-        if (hasEnoughAmmo)
-        {
-            // Reload to max ammo
-            ammunitionHolder.ammunition[ammunitionType] -= requiredAmmo;
-            currentAmmo = maxAmmo;
-            // print("Reloaded full mag. Ammo left in inventory: " + ammunitionHolder.ammunition[ammunitionType]);
-        }
-        else
-        {
-            // Reload partial mag
-            currentAmmo += ammunitionHolder.ammunition[ammunitionType];
-            ammunitionHolder.ammunition[ammunitionType] = 0;
-            // print("Reloaded partial mag. Ammo left in inventory: " + ammunitionHolder.ammunition[ammunitionType]);
-        }
-    }
-
-    private void SwitchFireMode()
-    {
-        if (!initialized) return;
-
-        // Switches the fire mode of the weapon
-        int currentIndex = Array.IndexOf(possibleFireModes, fireMode);
-        int nextIndex = (currentIndex + 1) % possibleFireModes.Length;
-        fireMode = possibleFireModes[nextIndex];
-    }
-
 }
