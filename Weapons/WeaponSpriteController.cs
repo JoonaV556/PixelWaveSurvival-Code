@@ -91,7 +91,7 @@ public class WeaponSpriteController : MonoBehaviour
                 WeaponSpriteRenderer.transform.localPosition.z
                 );
             offsetFlipped = true;
-            Debug.Log("Flipped offset");
+            //Debug.Log("Flipped offset");
         }
         else
         {
@@ -109,7 +109,7 @@ public class WeaponSpriteController : MonoBehaviour
                 WeaponSpriteRenderer.transform.localPosition.z
                 );
             offsetFlipped = false;
-            Debug.Log("Unflipped offset");
+            //Debug.Log("Unflipped offset");
         }
     }
 

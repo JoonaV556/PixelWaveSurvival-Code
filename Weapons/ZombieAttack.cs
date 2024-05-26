@@ -102,7 +102,7 @@ public class ZombieAttack : MonoBehaviour
     // Does the zombies directional main attack
     private void AttemptMainAttack()
     {
-        print("Zombie attempted main attack");
+        //print("Zombie attempted main attack");
         // Check if attack is on cooldown
         if (attackCooldownCoroutine != null)
         {

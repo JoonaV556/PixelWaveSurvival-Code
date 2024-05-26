@@ -50,6 +50,16 @@ public class PlayerInput : CharacterInput
 
     public float ZoomSensitivityMultiplier = 1f;
 
+    public static Action<int> OnWeaponSlotSwitched;
+
+    public static Action<float> OnCameraZoom;
+
+    public static Action MainAttackPressed;
+    public static Action MainAttackReleased;
+
+    public ButtonInfo MainAttackButton;
+
+
     // Properties to get input values, read these from objects which require input
 
     public List<ButtonInfo> buttons = new List<ButtonInfo>();
@@ -62,10 +72,6 @@ public class PlayerInput : CharacterInput
     InputAction switchWeaponSlotAction;
 
     InputAction lookAction;
-
-    public static Action<int> OnWeaponSlotSwitched;
-
-    public static Action<float> OnCameraZoom;
 
     /// <summary>
     /// Look position in screen space (Mouse position)
@@ -108,6 +114,9 @@ public class PlayerInput : CharacterInput
 
         // Update input for the first frame
         UpdateInput();
+
+        MainAttackButton = new ButtonInfo(inputActionAsset.FindAction("MainAttack"));
+        buttons.Add(MainAttackButton);
     }
 
     private void WeaponSlotSwitched(InputAction.CallbackContext ctx)
@@ -139,55 +148,14 @@ public class PlayerInput : CharacterInput
         MoveInput = moveAction.ReadValue<Vector2>().normalized;
         LookPositionInput = lookAction.ReadValue<Vector2>();
 
-        // LookInput = lookAction.ReadValue<Vector2>() * LookSensitivityMultiplier;
-        // int switchWeaponSlot = (int)switchWeaponSlotAction.ReadValue<float>();
-        // Debug.Log("Switch weapon slot input value: " + switchWeaponSlot);
-
-        // // Handle sprint input
-        // if (ToggleSprint)
-        // {
-        //     if (sprintButton.PressedThisFrame)
-        //     {
-        //         TryingToSprint = !TryingToSprint;
-        //     }
-        // }
-        // else
-        // {
-        //     TryingToSprint = sprintButton.HeldDown;
-        // }
-        // // Handle sneak input
-        // if (ToggleSneak)
-        // {
-        //     if (sneakButton.PressedThisFrame)
-        //     {
-        //         TryingToSneak = !TryingToSneak;
-        //     }
-        // }
-        // else
-        // {
-        //     TryingToSneak = sneakButton.HeldDown;
-        // }
-        // // Handle crouch input
-        // if (ToggleCrouch)
-        // {
-        //     if (crouchButton.PressedThisFrame)
-        //     {
-        //         TryingToCrouch = !TryingToCrouch;
-        //     }
-        // }
-        // else
-        // {
-        //     TryingToCrouch = crouchButton.HeldDown;
-        // }
-
-        // // Handle jump input
-        // TryingToJump = jumpButton.PressedThisFrame;
-
-        // // Handle lean input
-        // TryingToLeanLeft = leanLeftButton.HeldDown;
-        // TryingToLeanRight = leanRightButton.HeldDown;
-        // TryingToLean = TryingToLeanLeft || TryingToLeanRight;
-
+        if (MainAttackButton.PressedThisFrame)
+        {
+            MainAttackPressed?.Invoke();
+        }
+        if (MainAttackButton.ReleasedThisFrame)
+        {
+            MainAttackReleased?.Invoke();
+        }
     }
 
     private void FetchButtonData()
