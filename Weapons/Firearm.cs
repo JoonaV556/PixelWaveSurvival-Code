@@ -27,31 +27,33 @@ public class Firearm : MonoBehaviour
     public static Action<Firearm> OnShotFired;
     public static Action<Firearm> OnDryFire;
 
-    int maxAmmo;
-    int currentAmmo; // Ammo in current magazine
-    float fireRate; // Rounds per minute
 
+    int currentAmmo; // Ammo in current magazine
+
+    #region Weapon-Specific Properties
+    int maxAmmo;
+    int burstFireCount; // Number of rounds in a burst (burst will fire less than this if ammo is low)
+
+    float fireRate; // Rounds per minute
     float reloadTime; // Time to reload the weapon in seconds
+    float burstFireRate; // Rounds per minute for burst fire mode
 
     FireMode fireMode; // Current fire mode
-
     FireMode defaultFireMode; // Firemode after init
-
     FireMode[] possibleFireModes; // Possible fire modes on this gun
 
     AmmunitionType ammunitionType;
+    #endregion
 
     bool initialized = false;
 
-    bool tryingToFire = false;
-
-    bool autoReload = true; // TODO - make this a setting in some general place, then notify firearm when it is changed
+    bool tryingToFire = false; // Is the player trying to fire, according to input?
 
     bool reloading = false;
 
-    bool reloadPending = false;
-
     bool firingFullAuto = false;
+
+    bool firingBurst = false;
 
     Coroutine fullAutoRoutine;
     Coroutine reloadRoutine;
@@ -63,7 +65,9 @@ public class Firearm : MonoBehaviour
     {
         currentAmmo = 50;
         maxAmmo = 50;
-        possibleFireModes = new FireMode[] { FireMode.Semi, FireMode.FullAuto };
+        possibleFireModes = new FireMode[] { FireMode.Semi, FireMode.FullAuto, FireMode.Burst };
+        burstFireCount = 3;
+        burstFireRate = 900;
         fireMode = FireMode.FullAuto;
         ammunitionType = AmmunitionType.SMG;
         ammunitionHolder = new AmmunitionHolder();
@@ -100,19 +104,11 @@ public class Firearm : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (reloadPending && !reloading)
-        {
-            StartCoroutine(ReloadRoutine());
-        }
-    }
-
     private void OnReloadPressed()
     {
         if (CanReload())
         {
-            reloadPending = true;
+            StartCoroutine(ReloadRoutine());
         }
     }
 
@@ -130,7 +126,7 @@ public class Firearm : MonoBehaviour
         switch (fireMode)
         {
             case FireMode.Semi:
-                var canFire = HasAmmo() && !firingFullAuto && !reloading && !reloadPending;
+                var canFire = AmmoLeftInMagazine() && !firingFullAuto && !reloading && !firingBurst;
                 if (canFire)
                 {
                     Fire();
@@ -143,17 +139,30 @@ public class Firearm : MonoBehaviour
 
             case FireMode.FullAuto:
                 // Start firing full auto if we are not already firing full auto
-                var canStart = HasAmmo() && !firingFullAuto && !reloading && !reloadPending;
+                var canStart = AmmoLeftInMagazine() && !firingFullAuto && !reloading;
                 if (canStart)
                 {
                     //print("Starting full auto");
                     firingFullAuto = true;
                     fullAutoRoutine = StartCoroutine(FullAutoCoroutine());
                 }
+                else
+                {
+                    DryFire();
+                }
                 break;
 
             case FireMode.Burst:
-
+                var canStartBurst = AmmoLeftInMagazine() && !firingBurst && !reloading && !firingFullAuto;
+                if (canStartBurst)
+                {
+                    firingBurst = true;
+                    StartCoroutine(BurstCoroutine(burstFireCount));
+                }
+                else
+                {
+                    DryFire();
+                }
                 break;
         }
     }
@@ -163,7 +172,7 @@ public class Firearm : MonoBehaviour
         tryingToFire = false;
     }
 
-    // Initializes gun data. Gun cannot be used until initialized
+    // Initializes gun data. Gun cannot be used until initialized, unless using debug init
     private void Initialize()
     {
         // Fetch weapon data from the equipped weapon
@@ -204,7 +213,7 @@ public class Firearm : MonoBehaviour
                 yield break;
             }
 
-            if (HasAmmo())
+            if (AmmoLeftInMagazine())
             {
                 // Fire and wait for the next shot
                 Fire();
@@ -212,46 +221,71 @@ public class Firearm : MonoBehaviour
             }
             else
             {
-                // No ammo - so reload and stop firing
+                // No ammo - dryfire and stop auto
                 DryFire();
-                reloadPending = true;
                 firingFullAuto = false;
                 yield break;
             }
         }
     }
 
-    private bool CanReload()
+    private IEnumerator BurstCoroutine(int burstCount)
     {
-        return !firingFullAuto;
+        // Cache wait for preventing unnecessary garbage
+        var wait = new WaitForSeconds(1 / (burstFireRate / 60));
+        int shotsFired = 0;
+
+        while (true)
+        {
+            if (shotsFired == burstCount)
+            {
+                // Burst is done
+                firingBurst = false;
+                yield break;
+            }
+
+            if (AmmoLeftInMagazine())
+            {
+                // Fire and wait for the next shot
+                Fire();
+                shotsFired++;
+                yield return wait;
+            }
+            else
+            {
+                // No ammo - dryfire and stop burst
+                DryFire();
+                firingBurst = false;
+                yield break;
+            }
+        }
     }
 
     // If reload animations are used, waitforseconds should be equal to animation length 
     private IEnumerator ReloadRoutine()
     {
+        // Start reloading
         reloading = true;
-        yield return new WaitForSeconds(reloadTime);
+        yield return new WaitForSeconds(reloadTime); // Delay to simulate reload time
         Reload();
+
+        // Done reloading
         reloading = false;
         reloadPending = false;
-        //reloadRoutine = null;
         yield break;
     }
 
-    private bool HasAmmo()
+    private bool CanReload()
+    {
+        return !firingFullAuto && !firingBurst && !reloading && ammunitionHolder.ammunition[ammunitionType] > 0;
+    }
+
+    private bool AmmoLeftInMagazine()
     {
         if (!initialized) return false;
 
         return currentAmmo > 0;
     }
-
-    private void AttemptReload()
-    {
-        if (!initialized) return;
-
-
-    }
-
 
     private void Reload()
     {
