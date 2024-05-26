@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public enum FireMode
@@ -27,6 +25,7 @@ public class Firearm : MonoBehaviour
     // Requires AmmunitionHolder for reloads and ammo tracking
 
     public static Action<Firearm> OnShotFired;
+    public static Action<Firearm> OnDryFire;
 
     int maxAmmo;
     int currentAmmo; // Ammo in current magazine
@@ -131,7 +130,15 @@ public class Firearm : MonoBehaviour
         switch (fireMode)
         {
             case FireMode.Semi:
-
+                var canFire = HasAmmo() && !firingFullAuto && !reloading && !reloadPending;
+                if (canFire)
+                {
+                    Fire();
+                }
+                else
+                {
+                    DryFire();
+                }
                 break;
 
             case FireMode.FullAuto:
@@ -139,7 +146,7 @@ public class Firearm : MonoBehaviour
                 var canStart = HasAmmo() && !firingFullAuto && !reloading && !reloadPending;
                 if (canStart)
                 {
-                    print("Starting full auto");
+                    //print("Starting full auto");
                     firingFullAuto = true;
                     fullAutoRoutine = StartCoroutine(FullAutoCoroutine());
                 }
@@ -165,6 +172,11 @@ public class Firearm : MonoBehaviour
         initialized = true;
     }
 
+    private void DryFire()
+    {
+        OnDryFire?.Invoke(this);
+    }
+
     private void Fire()
     {
         if (!initialized) return;
@@ -172,7 +184,7 @@ public class Firearm : MonoBehaviour
         // Fires a single round
         OnShotFired?.Invoke(this);
         currentAmmo--;
-        print("Fired a round");
+        //print("Fired a round");
     }
 
     // Rounds per minute x : 700
@@ -201,6 +213,7 @@ public class Firearm : MonoBehaviour
             else
             {
                 // No ammo - so reload and stop firing
+                DryFire();
                 reloadPending = true;
                 firingFullAuto = false;
                 yield break;
@@ -250,12 +263,14 @@ public class Firearm : MonoBehaviour
 
         if (hasEnoughAmmo)
         {
+            // Reload to max ammo
             ammunitionHolder.ammunition[ammunitionType] -= requiredAmmo;
             currentAmmo = maxAmmo;
             // print("Reloaded full mag. Ammo left in inventory: " + ammunitionHolder.ammunition[ammunitionType]);
         }
         else
         {
+            // Reload partial mag
             currentAmmo += ammunitionHolder.ammunition[ammunitionType];
             ammunitionHolder.ammunition[ammunitionType] = 0;
             // print("Reloaded partial mag. Ammo left in inventory: " + ammunitionHolder.ammunition[ammunitionType]);
