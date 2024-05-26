@@ -51,6 +51,8 @@ public class Firearm : MonoBehaviour
     int currentAmmo; // Ammo in current magazine
 
     #region Weapon-Specific Properties
+
+    // Fetch these values from other sources in Initialize()
     int maxAmmo;
     int burstFireCount; // Number of rounds in a burst (burst will fire less than this if ammo is low)
 
