@@ -54,10 +54,15 @@ public class PlayerInput : CharacterInput
 
     public static Action<float> OnCameraZoom;
 
-    public static Action MainAttackPressed;
-    public static Action MainAttackReleased;
+    public static Action OnMainAttackPressed;
+    public static Action OnMainAttackReleased;
+
+    public static Action OnSwitchFireMode;
+    public static Action OnReload;
 
     public ButtonInfo MainAttackButton;
+    public ButtonInfo SwitchFireModeButton;
+    public ButtonInfo ReloadButton;
 
 
     // Properties to get input values, read these from objects which require input
@@ -72,6 +77,8 @@ public class PlayerInput : CharacterInput
     InputAction switchWeaponSlotAction;
 
     InputAction lookAction;
+    InputAction switchFireModeAction;
+    InputAction reloadAction;
 
     /// <summary>
     /// Look position in screen space (Mouse position)
@@ -106,17 +113,23 @@ public class PlayerInput : CharacterInput
         switchWeaponSlotAction = inputActionAsset.FindAction("SwitchActiveWeaponSlot");
         cameraZoomAction = inputActionAsset.FindAction("CameraZoom");
         lookAction = inputActionAsset.FindAction("Look");
-        // Debug.Log("moveAction found: " + moveAction != null);
+        reloadAction = inputActionAsset.FindAction("Reload");
+        switchFireModeAction = inputActionAsset.FindAction("SwitchFireMode");
 
         // Invoke event when weapon slot is switched    
         switchWeaponSlotAction.performed += WeaponSlotSwitched;
         cameraZoomAction.performed += CameraZoomDetected;
 
-        // Update input for the first frame
-        UpdateInput();
-
+        // Create ButtonInfos to get better data from input actions
+        ReloadButton = new ButtonInfo(reloadAction);
+        buttons.Add(ReloadButton);
+        SwitchFireModeButton = new ButtonInfo(switchFireModeAction);
+        buttons.Add(SwitchFireModeButton);
         MainAttackButton = new ButtonInfo(inputActionAsset.FindAction("MainAttack"));
         buttons.Add(MainAttackButton);
+
+        // Update input for the first frame
+        UpdateInput();
     }
 
     private void WeaponSlotSwitched(InputAction.CallbackContext ctx)
@@ -148,13 +161,22 @@ public class PlayerInput : CharacterInput
         MoveInput = moveAction.ReadValue<Vector2>().normalized;
         LookPositionInput = lookAction.ReadValue<Vector2>();
 
+        // Send events to listeneers
         if (MainAttackButton.PressedThisFrame)
         {
-            MainAttackPressed?.Invoke();
+            OnMainAttackPressed?.Invoke();
         }
         if (MainAttackButton.ReleasedThisFrame)
         {
-            MainAttackReleased?.Invoke();
+            OnMainAttackReleased?.Invoke();
+        }
+        if (SwitchFireModeButton.PressedThisFrame)
+        {
+            OnSwitchFireMode?.Invoke();
+        }
+        if (ReloadButton.PressedThisFrame)
+        {
+            OnReload?.Invoke();
         }
     }
 

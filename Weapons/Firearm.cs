@@ -11,7 +11,12 @@ public enum FireMode
     Burst
 }
 
-
+public enum AmmunitionType
+{
+    Pistol,
+    Shotgun,
+    SMG
+}
 
 public class Firearm : MonoBehaviour
 {
@@ -35,6 +40,8 @@ public class Firearm : MonoBehaviour
 
     FireMode[] possibleFireModes; // Possible fire modes on this gun
 
+    AmmunitionType ammunitionType;
+
     bool initialized = false;
 
     bool tryingToFire = false;
@@ -50,28 +57,39 @@ public class Firearm : MonoBehaviour
     Coroutine fullAutoRoutine;
     Coroutine reloadRoutine;
 
-    private void OnEnable()
-    {
-        PlayerInput.MainAttackPressed += OnMainAttackPressed;
-        PlayerInput.MainAttackReleased += OnMainAttackReleased;
+    AmmunitionHolder ammunitionHolder;
 
-        // Allows testing without weapon data
-        DebugInit();
-    }
-
+    // Remove later
     private void DebugInit()
     {
         currentAmmo = 50;
+        maxAmmo = 50;
+        possibleFireModes = new FireMode[] { FireMode.Semi, FireMode.FullAuto };
         fireMode = FireMode.FullAuto;
+        ammunitionType = AmmunitionType.SMG;
+        ammunitionHolder = new AmmunitionHolder();
         fireRate = 700;
         reloadTime = 1f;
         initialized = true;
     }
 
+    private void OnEnable()
+    {
+        PlayerInput.OnMainAttackPressed += OnMainAttackPressed;
+        PlayerInput.OnMainAttackReleased += OnMainAttackReleased;
+        PlayerInput.OnReload += OnReloadPressed;
+        PlayerInput.OnSwitchFireMode += OnSwitchFireModePressed;
+
+        // Allows testing without weapon data
+        DebugInit();
+    }
+
     private void OnDisable()
     {
-        PlayerInput.MainAttackPressed -= OnMainAttackPressed;
-        PlayerInput.MainAttackReleased -= OnMainAttackReleased;
+        PlayerInput.OnMainAttackPressed -= OnMainAttackPressed;
+        PlayerInput.OnMainAttackReleased -= OnMainAttackReleased;
+        PlayerInput.OnReload -= OnReloadPressed;
+        PlayerInput.OnSwitchFireMode -= OnSwitchFireModePressed;
 
         if (fullAutoRoutine != null)
         {
@@ -91,6 +109,20 @@ public class Firearm : MonoBehaviour
         }
     }
 
+    private void OnReloadPressed()
+    {
+        if (CanReload())
+        {
+            reloadPending = true;
+        }
+    }
+
+    private void OnSwitchFireModePressed()
+    {
+        var canSwitch = !firingFullAuto;
+        SwitchFireMode();
+    }
+
     private void OnMainAttackPressed()
     {
 
@@ -104,7 +136,7 @@ public class Firearm : MonoBehaviour
 
             case FireMode.FullAuto:
                 // Start firing full auto if we are not already firing full auto
-                var canStart = HasAmmo() && !firingFullAuto;
+                var canStart = HasAmmo() && !firingFullAuto && !reloading && !reloadPending;
                 if (canStart)
                 {
                     print("Starting full auto");
@@ -176,6 +208,11 @@ public class Firearm : MonoBehaviour
         }
     }
 
+    private bool CanReload()
+    {
+        return !firingFullAuto;
+    }
+
     // If reload animations are used, waitforseconds should be equal to animation length 
     private IEnumerator ReloadRoutine()
     {
@@ -207,8 +244,22 @@ public class Firearm : MonoBehaviour
     {
         if (!initialized) return;
 
+        var hasEnoughAmmo = ammunitionHolder.ammunition[ammunitionType] >= maxAmmo;
 
+        int requiredAmmo = maxAmmo - currentAmmo;
 
+        if (hasEnoughAmmo)
+        {
+            ammunitionHolder.ammunition[ammunitionType] -= requiredAmmo;
+            currentAmmo = maxAmmo;
+            // print("Reloaded full mag. Ammo left in inventory: " + ammunitionHolder.ammunition[ammunitionType]);
+        }
+        else
+        {
+            currentAmmo += ammunitionHolder.ammunition[ammunitionType];
+            ammunitionHolder.ammunition[ammunitionType] = 0;
+            // print("Reloaded partial mag. Ammo left in inventory: " + ammunitionHolder.ammunition[ammunitionType]);
+        }
     }
 
     private void SwitchFireMode()

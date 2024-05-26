@@ -12,7 +12,16 @@ public class AmmunitionHolder
     // Tracks ammo count for a player or a character
 
     // For testing - Add some intial ammo to the player
-    public int pistolAmmo = 100;
-    public int shotgunAmmo = 50;
-    public int smgAmmo = 200;
+
+    public Dictionary<AmmunitionType, int> ammunition;
+
+    public AmmunitionHolder()
+    {
+        ammunition = new Dictionary<AmmunitionType, int>
+        {
+            { AmmunitionType.Pistol, 100 },
+            { AmmunitionType.SMG, 100 },
+            { AmmunitionType.Shotgun, 100 }
+        };
+    }
 }
