@@ -61,7 +61,7 @@ public class Firearm : MonoBehaviour
 
     private void DebugInit()
     {
-        currentAmmo = 100;
+        currentAmmo = 50;
         fireMode = FireMode.FullAuto;
         fireRate = 700;
         reloadTime = 1f;
@@ -104,7 +104,8 @@ public class Firearm : MonoBehaviour
 
             case FireMode.FullAuto:
                 // Start firing full auto if we are not already firing full auto
-                if (fullAutoRoutine == null)
+                var canStart = HasAmmo() && !firingFullAuto;
+                if (canStart)
                 {
                     print("Starting full auto");
                     firingFullAuto = true;
@@ -147,13 +148,15 @@ public class Firearm : MonoBehaviour
     // Time between each round : 1 / y
     private IEnumerator FullAutoCoroutine()
     {
+        // Cache wait for preventing unnecessary garbage
+        var wait = new WaitForSeconds(1 / (fireRate / 60));
+
         while (true)
         {
-            // Stop the coroutine if the player is no longer trying to fire
             if (!tryingToFire)
             {
+                // Stop firing if the player is not trying to fire
                 firingFullAuto = false;
-                fullAutoRoutine = null;
                 yield break;
             }
 
@@ -161,16 +164,15 @@ public class Firearm : MonoBehaviour
             {
                 // Fire and wait for the next shot
                 Fire();
-                //yield return new WaitForSeconds(1 / (fireRate / 60));
-                yield return new WaitForSeconds(1f / (fireRate / 60f));
+                yield return wait;
             }
-            // else
-            // {
-            //     // No ammo - so reload and stop firing
-            //     reloadPending = true;
-            //     firingFullAuto = false;
-            //     yield break;
-            // }
+            else
+            {
+                // No ammo - so reload and stop firing
+                reloadPending = true;
+                firingFullAuto = false;
+                yield break;
+            }
         }
     }
 
