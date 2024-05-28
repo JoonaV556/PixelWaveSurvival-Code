@@ -47,8 +47,9 @@ public class Firearm : MonoBehaviour
     public static Action<Firearm> OnShotFired;
     public static Action<Firearm> OnDryFire;
 
+    public bool EnableAutoReload = true; // Automatically reload when out of ammo
 
-    int currentAmmo; // Ammo in current magazine
+    int ammoInGun; // Ammo in current magazine
 
     #region Weapon-Specific Properties
 
@@ -85,7 +86,7 @@ public class Firearm : MonoBehaviour
     // Remove later - Creates simulated weapon data
     private void DebugInit()
     {
-        currentAmmo = 50;
+        ammoInGun = 50;
         maxAmmo = 50;
         possibleFireModes = new FireMode[] { FireMode.Semi, FireMode.FullAuto, FireMode.Burst };
         burstFireCount = 3;
@@ -123,6 +124,22 @@ public class Firearm : MonoBehaviour
         if (reloadRoutine != null)
         {
             StopCoroutine(reloadRoutine);
+        }
+    }
+
+    private void Update()
+    {
+        // Handle auto reload
+        HandleAutoReload();
+    }
+
+    private void HandleAutoReload()
+    {
+        if (!EnableAutoReload) return;
+        bool shouldReload = ammoInGun == 0;
+        if (shouldReload && CanReload())
+        {
+            StartCoroutine(ReloadRoutine());
         }
     }
 
@@ -216,7 +233,7 @@ public class Firearm : MonoBehaviour
 
         // Fires a single round
         OnShotFired?.Invoke(this);
-        currentAmmo--;
+        ammoInGun--;
         //print("Fired a round");
     }
 
@@ -229,7 +246,7 @@ public class Firearm : MonoBehaviour
     {
         if (!initialized) return false;
 
-        return currentAmmo > 0;
+        return ammoInGun > 0;
     }
 
     private void Reload()
@@ -238,19 +255,19 @@ public class Firearm : MonoBehaviour
 
         var hasEnoughAmmo = ammunitionHolder.ammunition[ammunitionType] >= maxAmmo;
 
-        int requiredAmmo = maxAmmo - currentAmmo;
+        int requiredAmmo = maxAmmo - ammoInGun;
 
         if (hasEnoughAmmo)
         {
             // Reload to max ammo
             ammunitionHolder.ammunition[ammunitionType] -= requiredAmmo;
-            currentAmmo = maxAmmo;
+            ammoInGun = maxAmmo;
             // print("Reloaded full mag. Ammo left in inventory: " + ammunitionHolder.ammunition[ammunitionType]);
         }
         else
         {
             // Reload partial mag
-            currentAmmo += ammunitionHolder.ammunition[ammunitionType];
+            ammoInGun += ammunitionHolder.ammunition[ammunitionType];
             ammunitionHolder.ammunition[ammunitionType] = 0;
             // print("Reloaded partial mag. Ammo left in inventory: " + ammunitionHolder.ammunition[ammunitionType]);
         }
