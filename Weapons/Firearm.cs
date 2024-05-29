@@ -47,19 +47,22 @@ public class Firearm : MonoBehaviour
     public static Action<Firearm> OnShotFired;
     public static Action<Firearm> OnDryFire;
 
+    public Transform ProjectileSpawnPoint; // Where the projectile will spawn
+
     public bool EnableAutoReload = true; // Automatically reload when out of ammo
 
     int ammoInGun; // Ammo in current magazine
 
     #region Weapon-Specific Properties
-
     // Fetch these values from other sources in Initialize()
+    public GameObject BulletPrefab; // Prefab for the bullet fired by this weapon
     int maxAmmo;
     int burstFireCount; // Number of rounds in a burst (burst will fire less than this if ammo is low)
 
     float fireRate; // Rounds per minute
     float reloadTime; // Time to reload the weapon in seconds
     float burstFireRate; // Rounds per minute for burst fire mode
+    public float bulletSpawnVelocity = 10f;
 
     FireMode fireMode; // Current fire mode
     FireMode defaultFireMode; // Firemode after init
@@ -232,9 +235,24 @@ public class Firearm : MonoBehaviour
         if (!initialized) return;
 
         // Fires a single round
+        LaunchProjectile();
         OnShotFired?.Invoke(this);
         ammoInGun--;
         //print("Fired a round");
+    }
+
+    private void LaunchProjectile()
+    {
+        // TODO - Implement pooling to reduce GC
+
+        // Create new projectile at barrel end
+        var projectile = Instantiate(BulletPrefab, ProjectileSpawnPoint.position, Quaternion.identity);
+
+        // Rotate towards barrel pointing direction
+        projectile.transform.right = ProjectileSpawnPoint.right;
+
+        // Make the projectile fly towards barrel pointing direction
+        projectile.GetComponent<Rigidbody2D>().velocity = ProjectileSpawnPoint.right * bulletSpawnVelocity;
     }
 
     private bool CanReload()
