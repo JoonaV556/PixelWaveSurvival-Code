@@ -17,6 +17,10 @@ public class StatusEffectHandler : MonoBehaviour
 
     public List<ActiveStatusEffect> statusEffects;
 
+    /// <summary>
+    /// Tries to apply status effect to character. If similar effect is already applied, refresh its duration.
+    /// </summary>
+    /// <param name="effectToApply">effect to apply on the character</param>
     public void TryApply(StatusEffectBase effectToApply)
     {
         // If similar effect is already applied, refresh its duration (Start the coroutine again with new duration) 
