@@ -51,6 +51,9 @@ public class Firearm : MonoBehaviour
 
     public bool EnableAutoReload = true; // Automatically reload when out of ammo
 
+    [Tooltip("If true, ammo is not removed from ammoHolder on reload. Reload still necessary. ")]
+    public bool InfiniteAmmo = false; // Infinite ammo for testing
+
     int ammoInGun; // Ammo in current magazine
 
     #region Weapon-Specific Properties
@@ -165,6 +168,7 @@ public class Firearm : MonoBehaviour
     {
 
         tryingToFire = true;
+        var shouldDryFire = !AmmoLeftInMagazine() && !reloading && !firingFullAuto && !firingBurst;
 
         switch (fireMode)
         {
@@ -174,7 +178,7 @@ public class Firearm : MonoBehaviour
                 {
                     Fire();
                 }
-                else
+                if (shouldDryFire)
                 {
                     DryFire();
                 }
@@ -189,7 +193,7 @@ public class Firearm : MonoBehaviour
                     firingFullAuto = true;
                     fullAutoRoutine = StartCoroutine(FullAutoCoroutine());
                 }
-                else
+                if (shouldDryFire)
                 {
                     DryFire();
                 }
@@ -202,7 +206,7 @@ public class Firearm : MonoBehaviour
                     firingBurst = true;
                     StartCoroutine(BurstCoroutine(burstFireCount));
                 }
-                else
+                if (shouldDryFire)
                 {
                     DryFire();
                 }
@@ -255,6 +259,10 @@ public class Firearm : MonoBehaviour
         projectile.GetComponent<Rigidbody2D>().velocity = ProjectileSpawnPoint.right * bulletSpawnVelocity;
     }
 
+    /// <summary>
+    /// Returns true if ammo holder has atleast 1 bullet to reload with and weapon is not currectly firing or reloading
+    /// </summary>
+    /// <returns></returns>
     private bool CanReload()
     {
         return !firingFullAuto && !firingBurst && !reloading && ammunitionHolder.ammunition[ammunitionType] > 0;
@@ -274,6 +282,12 @@ public class Firearm : MonoBehaviour
         var hasEnoughAmmo = ammunitionHolder.ammunition[ammunitionType] >= maxAmmo;
 
         int requiredAmmo = maxAmmo - ammoInGun;
+
+        if (InfiniteAmmo)
+        {
+            ammoInGun = maxAmmo;
+            return;
+        }
 
         if (hasEnoughAmmo)
         {

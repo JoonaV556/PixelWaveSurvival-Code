@@ -95,6 +95,7 @@ GameObject:
   - component: {fileID: 3921029661667690550}
   - component: {fileID: 6207293418179431919}
   - component: {fileID: 281322596153095579}
+  - component: {fileID: 2049777653124567926}
   m_Layer: 9
   m_Name: P_Bullet_SMG
   m_TagString: Untagged
@@ -161,7 +162,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.07347018, y: 0.040690042}
+  m_Size: {x: 0.07347018, y: 0.04069004}
   m_EdgeRadius: 0
 --- !u!50 &281322596153095579
 Rigidbody2D:
@@ -185,8 +186,21 @@ Rigidbody2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
+--- !u!114 &2049777653124567926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7456574683706022600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35d2e42d74b4cac459d1ff2d815d1307, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Damage: 1
