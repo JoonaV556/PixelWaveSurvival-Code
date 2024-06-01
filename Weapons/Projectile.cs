@@ -3,6 +3,19 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
     public float Damage;
+    public float FlyDistanceBeforeAutoDestroy = 100f;
+
+    private void OnEnable()
+    {
+        // Init position for max fly distance stuff
+        lastPosition = transform.position;
+        currentPosition = transform.position;
+    }
+
+    private void Update()
+    {
+        HandleAutoDestroy();
+    }
 
     private void OnCollisionEnter2D(Collision2D other)
     {
@@ -11,7 +24,7 @@ public class Projectile : MonoBehaviour
         if (health)
         {
             healthComponent.TakeDamage(Damage);
-            TypeLog(this, "Dealt dammage to " + other.gameObject.name);
+            TypeLog(this, "Dealt damage to " + other.gameObject.name);
             Destroy(this.gameObject);
         }
         else
@@ -27,4 +40,21 @@ public class Projectile : MonoBehaviour
     {
         Debug.Log(type.GetType().Name + ": " + message);
     }
+
+    #region Destroy after flying too far
+    float distanceFlown = 0f;
+    Vector2 lastPosition;
+    Vector2 currentPosition;
+    private void HandleAutoDestroy()
+    {
+        currentPosition = transform.position;
+        distanceFlown += Vector2.Distance(lastPosition, currentPosition);
+        lastPosition = currentPosition;
+        if (distanceFlown > FlyDistanceBeforeAutoDestroy)
+        {
+            TypeLog(this, "Auto-destroyed projectile.");
+            Destroy(this.gameObject);
+        }
+    }
+    #endregion
 }
