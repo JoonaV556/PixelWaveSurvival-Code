@@ -1,9 +1,25 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
     public float Damage;
     public float FlyDistanceBeforeAutoDestroy = 100f;
+
+    protected List<StatusEffectBase> EffectsToApply;
+
+    private void Awake()
+    {
+        OnCreated();
+    }
+
+    /// <summary>
+    /// Apply custom stuff on projectiles here. Such as status effects
+    /// </summary>
+    protected virtual void OnCreated()
+    {
+
+    }
 
     private void OnEnable()
     {
@@ -19,6 +35,13 @@ public class Projectile : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D other)
     {
+        HandleDamage(other);
+
+        HandleStatusEffects(other);
+    }
+
+    private void HandleDamage(Collision2D other)
+    {
         // Try to deal damage to the object that was hit
         var health = other.gameObject.TryGetComponent(out Health healthComponent);
         if (health)
@@ -32,6 +55,22 @@ public class Projectile : MonoBehaviour
             // Other object is not damageable, probably obstacle
             TypeLog(this, "Hit obstacle");
             Destroy(this.gameObject);
+        }
+    }
+
+    private void HandleStatusEffects(Collision2D other)
+    {
+        if (EffectsToApply != null)
+        {
+            // Apply effects to the object that was hit
+            var canHandleStatusEffects = other.gameObject.TryGetComponent(out StatusEffectHandler effectHandler);
+            if (canHandleStatusEffects)
+            {
+                foreach (var effect in EffectsToApply)
+                {
+                    effectHandler.TryApply(effect);
+                }
+            }
         }
     }
 

@@ -11,6 +11,7 @@ public class CharacterMovement : MonoBehaviour
 
     [SerializeField, Tooltip("Adjust this to change player's acceleration and movement speed")]
     private float MovementForce = 600000f; // Default value adjusted for Rigidbody mass of 70kg
+    float modifier = 0f;
 
     [SerializeField, Tooltip("Drag player's rigidbody here")]
     private Rigidbody2D Rigidbody;
@@ -35,7 +36,7 @@ public class CharacterMovement : MonoBehaviour
         if (MoveInput != Vector2.zero)
         {
             // Move player
-            MovePlayer();
+            MoveCharacter();
         }
         // Clamp players velocity to prevent accelerating to too high speeds
         if (ClampVelocity) ClampMoveVelocity();
@@ -63,10 +64,21 @@ public class CharacterMovement : MonoBehaviour
     }
 
     // Move player
-    private void MovePlayer()
+    private void MoveCharacter()
     {
+        var actualMovementForce = MovementForce + modifier;
         // Do movement
-        Vector2 MoveVector = MoveInput * MovementForce * Time.fixedDeltaTime;
+        Vector2 MoveVector = MoveInput * actualMovementForce * Time.fixedDeltaTime;
         Rigidbody.AddForce(MoveVector, ForceMode2D.Force);
+    }
+
+    public float GetMovementForce()
+    {
+        return MovementForce;
+    }
+
+    public void AddMovementModifier(float modifierToAdd)
+    {
+        modifier += modifierToAdd;
     }
 }
