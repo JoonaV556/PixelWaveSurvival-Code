@@ -240,6 +240,7 @@ public class Firearm : MonoBehaviour
 
         // Fires a single round
         LaunchProjectile();
+
         OnShotFired?.Invoke(this);
         ammoInGun--;
         //print("Fired a round");

@@ -47,13 +47,13 @@ public class Projectile : MonoBehaviour
         if (health)
         {
             healthComponent.TakeDamage(Damage);
-            TypeLog(this, "Dealt damage to " + other.gameObject.name);
+            // TypeLog(this, "Dealt damage to " + other.gameObject.name);
             Destroy(this.gameObject);
         }
         else
         {
             // Other object is not damageable, probably obstacle
-            TypeLog(this, "Hit obstacle");
+            // TypeLog(this, "Hit obstacle");
             Destroy(this.gameObject);
         }
     }
@@ -91,7 +91,7 @@ public class Projectile : MonoBehaviour
         lastPosition = currentPosition;
         if (distanceFlown > FlyDistanceBeforeAutoDestroy)
         {
-            TypeLog(this, "Auto-destroyed projectile.");
+            // TypeLog(this, "Auto-destroyed projectile.");
             Destroy(this.gameObject);
         }
     }

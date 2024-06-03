@@ -3,6 +3,12 @@ using UnityEngine;
 
 public class WeaponSpriteController : MonoBehaviour
 {
+    public enum LookDirection
+    {
+        Left,
+        Right
+    }
+
     // Points weapon towards mouse position
     // Flips weapon sprite when player is looking left and right, so weapon orientation looks always right
 
@@ -15,6 +21,8 @@ public class WeaponSpriteController : MonoBehaviour
     public bool PointTowardsCursorPosition = true;
     public bool FlipSpriteOnHorizontalAxis = true;
     public bool FlipSpriteYOffsetOnHorizontalAxis = true;
+
+    public static LookDirection CurrentLookDirection = LookDirection.Right;
 
     // TODO
     // Get sprite object y offset at start
@@ -50,6 +58,16 @@ public class WeaponSpriteController : MonoBehaviour
         WeaponRotation = WeaponBodyPivotTransform.eulerAngles;
 
         bool shouldFlipStuff = WeaponRotation.z > 90f && WeaponRotation.z < 270f;
+
+        // Update look dir for other systems
+        if (shouldFlipStuff)
+        {
+            CurrentLookDirection = LookDirection.Left;
+        }
+        else
+        {
+            CurrentLookDirection = LookDirection.Right;
+        }
 
         // Flip sprite on horizontal axis
         if (FlipSpriteOnHorizontalAxis)
