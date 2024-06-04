@@ -25,12 +25,12 @@ public class WeaponAnimator : MonoBehaviour
     {
         print("Playing recoil animation");
 
-        switch (WeaponSpriteController.CurrentLookDirection)
+        switch (WeaponSpriteController.CurrentLookSide)
         {
-            case WeaponSpriteController.LookDirection.Left:
+            case WeaponSpriteController.LookSide.Left:
                 Animator.Play("RecoilLeft");
                 break;
-            case WeaponSpriteController.LookDirection.Right:
+            case WeaponSpriteController.LookSide.Right:
                 Animator.Play("RecoilRight");
                 break;
         }

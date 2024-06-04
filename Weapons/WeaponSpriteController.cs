@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class WeaponSpriteController : MonoBehaviour
 {
-    public enum LookDirection
+    public enum LookSide
     {
         Left,
         Right
@@ -22,7 +22,7 @@ public class WeaponSpriteController : MonoBehaviour
     public bool FlipSpriteOnHorizontalAxis = true;
     public bool FlipSpriteYOffsetOnHorizontalAxis = true;
 
-    public static LookDirection CurrentLookDirection = LookDirection.Right;
+    public static LookSide CurrentLookSide = LookSide.Right;
 
     // TODO
     // Get sprite object y offset at start
@@ -62,11 +62,11 @@ public class WeaponSpriteController : MonoBehaviour
         // Update look dir for other systems
         if (shouldFlipStuff)
         {
-            CurrentLookDirection = LookDirection.Left;
+            CurrentLookSide = LookSide.Left;
         }
         else
         {
-            CurrentLookDirection = LookDirection.Right;
+            CurrentLookSide = LookSide.Right;
         }
 
         // Flip sprite on horizontal axis
