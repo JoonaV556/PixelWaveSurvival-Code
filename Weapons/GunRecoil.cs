@@ -11,6 +11,7 @@ public class GunRecoil : MonoBehaviour
 
 
     public float KickPerShot = 0.1f; // Recoil kick in degrees
+    public float MaxKickDegrees = 30f; // Gun cannot recoil upwards more than this
     [Range(0, 1)] public float RecoilSlerpAlpha = 0.98f; // How fast gun kicks
 
     public bool UseMultiplier = false;
@@ -34,8 +35,11 @@ public class GunRecoil : MonoBehaviour
     }
 
     float pendingKick = 0f;
+    float recoilControlCooldown = 0f;
+    public float RecoilControlCooldown = 0.3f;
     private void AddKick(Firearm firearm)
     {
+        recoilControlCooldown = 0.3f;
         // Simulate kick by offsetting target rotation by degrees
         switch (WeaponSpriteController.CurrentLookSide)
         {
@@ -55,6 +59,19 @@ public class GunRecoil : MonoBehaviour
         // Get rotation data
         var currentRot = RecoilPivot.transform.localRotation.eulerAngles;
         targetRot = new Vector3(currentRot.x, currentRot.y, currentRot.z + pendingKick);
+
+        // Clamp target rotation based on current look side
+        switch (WeaponSpriteController.CurrentLookSide)
+        {
+            case WeaponSpriteController.LookSide.Left:
+                targetRot = new Vector3(targetRot.x, targetRot.y, Mathf.Clamp(targetRot.z, -MaxKickDegrees, 0f));
+                break;
+            case WeaponSpriteController.LookSide.Right:
+                targetRot = new Vector3(targetRot.x, targetRot.y, Mathf.Clamp(targetRot.z, 0f, MaxKickDegrees));
+                break;
+        }
+
+        // Consume pending kick
         pendingKick = 0f;
 
         // Calculate slerp alpha
