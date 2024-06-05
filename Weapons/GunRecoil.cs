@@ -1,9 +1,12 @@
+using System.Linq.Expressions;
 using UnityEngine;
 
 public class GunRecoil : MonoBehaviour
 {
     // Predefined public parameters are tailored for MP5 or other small SMGs
     public Transform RecoilPivot;
+
+    public bool Enabled = true;
 
     [Tooltip("How many degrees the gun kicks upwards per shot fired.")]
     public float KickPerShot = 2f;
@@ -66,12 +69,28 @@ public class GunRecoil : MonoBehaviour
     {
         // Get rotation data
         var currentRot = RecoilPivot.transform.localRotation.eulerAngles;
+        print(currentRot);
+
+        if (!Enabled)
+        {
+            return;
+        }
 
         // Recoil upwards if shots fired, else pull weapon back down
         bool shouldPullDown = secondsBeforePulldown == 0f;
         if (shouldPullDown)
         {
             targetRot = new Vector3(currentRot.x, currentRot.y, 0f); // Target rotation is always 0 on z axis when pulling down
+
+            // switch (WeaponSpriteController.CurrentLookSide)
+            // {
+            //     case WeaponSpriteController.LookSide.Left:
+            //         targetRot = new Vector3(targetRot.x, targetRot.y, 360f);
+            //         break;
+            //     case WeaponSpriteController.LookSide.Right:
+            //         targetRot = new Vector3(targetRot.x, targetRot.y, 0f);
+            //         break;
+            // }
         }
         else
         {
@@ -81,7 +100,7 @@ public class GunRecoil : MonoBehaviour
             switch (WeaponSpriteController.CurrentLookSide)
             {
                 case WeaponSpriteController.LookSide.Left:
-                    targetRot = new Vector3(targetRot.x, targetRot.y, Mathf.Clamp(targetRot.z, -KickDegreesUpperLimit, 0f));
+                    targetRot = new Vector3(targetRot.x, targetRot.y, Mathf.Clamp(targetRot.z, 360 - KickDegreesUpperLimit, 360f));
                     break;
                 case WeaponSpriteController.LookSide.Right:
                     targetRot = new Vector3(targetRot.x, targetRot.y, Mathf.Clamp(targetRot.z, 0f, KickDegreesUpperLimit));
