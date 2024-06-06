@@ -1,13 +1,15 @@
 using JoonaUtils;
 using UnityEngine;
 
+public enum LookSide
+{
+    Left,
+    Right
+}
+
 public class WeaponSpriteController : MonoBehaviour
 {
-    public enum LookSide
-    {
-        Left,
-        Right
-    }
+
 
     // Points weapon towards mouse position
     // Flips weapon sprite when player is looking left and right, so weapon orientation looks always right

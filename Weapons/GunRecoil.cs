@@ -54,25 +54,46 @@ public class GunRecoil : MonoBehaviour
         // Simulate kick by offsetting target rotation by degrees
         switch (WeaponSpriteController.CurrentLookSide)
         {
-            case WeaponSpriteController.LookSide.Left:
+            case LookSide.Left:
                 // targetRotation = new Vector3(targetRotation.x, targetRotation.y, targetRotation.z - KickPerShot);
                 pendingKick -= KickPerShot;
                 break;
-            case WeaponSpriteController.LookSide.Right:
+            case LookSide.Right:
                 // targetRotation = new Vector3(targetRotation.x, targetRotation.y, targetRotation.z + KickPerShot);
                 pendingKick += KickPerShot;
                 break;
         }
     }
 
+    LookSide lastLookSide = LookSide.Right;
+    public bool EnablePulldown = true;
+    public Vector3 currentRot = Vector3.zero;
     private void Update()
     {
-        // Get rotation data
-        var currentRot = RecoilPivot.transform.localRotation.eulerAngles;
-        print(currentRot);
+        // Get current rot for later use
+        currentRot = RecoilPivot.transform.localRotation.eulerAngles;
 
         if (!Enabled)
         {
+            return;
+        }
+
+        // Flip gun sprite z rotation in case look side has changed
+        if (WeaponSpriteController.CurrentLookSide != lastLookSide)
+        {
+            lastLookSide = WeaponSpriteController.CurrentLookSide;
+            Vector3 ModifiedRot = Vector3.zero;
+            switch (WeaponSpriteController.CurrentLookSide)
+            {
+                case LookSide.Left:
+                    RecoilPivot.localEulerAngles = new Vector3(currentRot.x, currentRot.y, 360 - currentRot.z);
+                    currentRot = RecoilPivot.transform.localRotation.eulerAngles; // Update current rot
+                    break;
+                case LookSide.Right:
+                    RecoilPivot.localEulerAngles = new Vector3(currentRot.x, currentRot.y, 0 + (360 - currentRot.z));
+                    currentRot = RecoilPivot.transform.localRotation.eulerAngles; // Update current rot
+                    break;
+            }
             return;
         }
 
@@ -80,7 +101,17 @@ public class GunRecoil : MonoBehaviour
         bool shouldPullDown = secondsBeforePulldown == 0f;
         if (shouldPullDown)
         {
-            targetRot = new Vector3(currentRot.x, currentRot.y, 0f); // Target rotation is always 0 on z axis when pulling down
+            // targetRot = new Vector3(currentRot.x, currentRot.y, 0f); // Target rotation is always 0 on z axis when pulling down
+
+            if (EnablePulldown)
+            {
+                targetRot = new Vector3(currentRot.x, currentRot.y, 0f);
+            }
+            else
+            {
+                targetRot = currentRot;
+            }
+
 
             // switch (WeaponSpriteController.CurrentLookSide)
             // {
@@ -92,20 +123,25 @@ public class GunRecoil : MonoBehaviour
             //         break;
             // }
         }
-        else
+        else if (pendingKick > 0f)
         {
             // Add pending kick (degrees) to target rotation
             targetRot = new Vector3(currentRot.x, currentRot.y, currentRot.z + pendingKick);
             // Clamp target rotation based on current look side (Prevents gun from recoiling infinitely and doing 360) 
             switch (WeaponSpriteController.CurrentLookSide)
             {
-                case WeaponSpriteController.LookSide.Left:
+                case LookSide.Left:
                     targetRot = new Vector3(targetRot.x, targetRot.y, Mathf.Clamp(targetRot.z, 360 - KickDegreesUpperLimit, 360f));
                     break;
-                case WeaponSpriteController.LookSide.Right:
+                case LookSide.Right:
                     targetRot = new Vector3(targetRot.x, targetRot.y, Mathf.Clamp(targetRot.z, 0f, KickDegreesUpperLimit));
                     break;
             }
+        }
+        else
+        {
+            // If no pending kick, set target rotation to current rotation
+            targetRot = currentRot;
         }
 
         // Consume pending recoil kick
