@@ -3,7 +3,27 @@ using UnityEngine;
 
 public class GunRecoil : MonoBehaviour
 {
-    // Predefined public parameters are tailored for MP5 or other small SMGs
+    /*
+
+    Applies vertical recoil for guns by rotating the gun sprite upwards when shot is fired
+
+    Features:
+    * vertical recoil upwards
+        - Customizable properties:
+            - KickPerShot: How many degrees the gun kicks upwards per shot fired
+            - KickDegreesUpperLimit: How many degrees the gun can kick upwards at most. Relative to 0 degrees on z axis
+            - RecoilSlerpAlpha: How fast gun kicks up
+            - RecoilAlphaMultiplier: Optional multiplier for the alpha values
+    * Gun returns back to original rotation after recoil
+        - Customizable properties:
+            - PullBackAlpha: How fast gun returns back to original rotation after recoil
+            - PullbackAlphaMultiplier: Optional multiplier for the alpha values
+            - PullDownDelayLength: How much time has to pass (in seconds) since last shot fired, before gun starts to pull back down to actual aim direction
+    
+    Predefined public parameters are tailored for MP5 or other small SMGs
+
+    */
+
     public Transform RecoilPivot;
 
     public bool Enabled = true;
@@ -89,23 +109,8 @@ public class GunRecoil : MonoBehaviour
             return;
         }
 
-        // Determine target rotation
-        if (secondsBeforePulldown == 0f)
-        {
-            targetRot = EnablePulldown ? new Vector3(currentRot.x, currentRot.y, 0f) : currentRot;
-        }
-        else if (pendingKick > 0f)
-        {
-            targetRot = new Vector3(currentRot.x, currentRot.y, currentRot.z + pendingKick);
-            float zClampMin = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 360 - KickDegreesUpperLimit : 0f;
-            float zClampMax = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 360f : KickDegreesUpperLimit;
-            targetRot.z = Mathf.Clamp(targetRot.z, zClampMin, zClampMax);
-        }
-        else
-        {
-            // No pending recoil and gun is already 
-            targetRot = currentRot;
-        }
+        // Determine target rotation to slerp to
+        UpdateTargetRotation();
 
         // Reset pending recoil kick
         pendingKick = 0f;
@@ -116,6 +121,37 @@ public class GunRecoil : MonoBehaviour
             secondsBeforePulldown = Mathf.Clamp(secondsBeforePulldown - Time.deltaTime, 0f, PullDownDelayLength);
         }
 
+        float timedAlpha = GetTimedAlpha();
+
+        // Apply rotation using slerp
+        RecoilPivot.localEulerAngles = Vector3.Slerp(currentRot, targetRot, timedAlpha);
+    }
+
+    private void UpdateTargetRotation()
+    {
+        // Determine target rotation
+        if (secondsBeforePulldown == 0f)
+        {
+            // Recoil ended - Rotate gun back to aim direction
+            targetRot = EnablePulldown ? new Vector3(currentRot.x, currentRot.y, 0f) : currentRot;
+        }
+        else if (pendingKick > 0f)
+        {
+            // Recoil is still pending - Rotate gun upwards based on look direction
+            targetRot = new Vector3(currentRot.x, currentRot.y, currentRot.z + pendingKick);
+            float zClampMin = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 360 - KickDegreesUpperLimit : 0f;
+            float zClampMax = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 360f : KickDegreesUpperLimit;
+            targetRot.z = Mathf.Clamp(targetRot.z, zClampMin, zClampMax);
+        }
+        else
+        {
+            // No pending recoil and gun is already pointing at aim direction - keep it there
+            targetRot = currentRot;
+        }
+    }
+
+    private float GetTimedAlpha()
+    {
         // Calculate slerp alpha
         bool shouldPullDown = secondsBeforePulldown == 0f;
 
@@ -135,8 +171,6 @@ public class GunRecoil : MonoBehaviour
             timedAlpha *= UseRecoilMultiplier ? multiplier : 1f;
         }
 
-        // Apply rotation using slerp
-        RecoilPivot.localEulerAngles = Vector3.Slerp(currentRot, targetRot, timedAlpha);
+        return timedAlpha;
     }
-
 }
