@@ -138,9 +138,16 @@ public class GunRecoil : MonoBehaviour
         else if (pendingKick > 0f)
         {
             // Recoil is still pending - Rotate gun upwards based on look direction
-            targetRot = new Vector3(currentRot.x, currentRot.y, currentRot.z + pendingKick);
-            float zClampMin = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 360 - KickDegreesUpperLimit : 0f;
-            float zClampMax = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 360f : KickDegreesUpperLimit;
+            var currentLookside = WeaponSpriteController.CurrentLookSide;
+            targetRot = new Vector3(currentRot.x, currentRot.y, currentRot.z);
+            print("Target rot before recoil: " + targetRot.z);
+
+            // Change kick direction based on look side
+            targetRot.z = (currentLookside == LookSide.Left) ? 360 - pendingKick : targetRot.z + pendingKick;
+
+            // Clamp rotation to prevent gun from rotating too much
+            float zClampMin = (currentLookside == LookSide.Left) ? 360 - KickDegreesUpperLimit : 0f;
+            float zClampMax = (currentLookside == LookSide.Left) ? 360f : KickDegreesUpperLimit;
             targetRot.z = Mathf.Clamp(targetRot.z, zClampMin, zClampMax);
         }
         else
