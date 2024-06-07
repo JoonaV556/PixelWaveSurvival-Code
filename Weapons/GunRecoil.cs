@@ -9,13 +9,13 @@ public class GunRecoil : MonoBehaviour
 
     Features:
     * vertical recoil upwards
-        - Customizable properties:
+        * Customizable properties:
             - KickPerShot: How many degrees the gun kicks upwards per shot fired
             - KickDegreesUpperLimit: How many degrees the gun can kick upwards at most. Relative to 0 degrees on z axis
             - RecoilSlerpAlpha: How fast gun kicks up
             - RecoilAlphaMultiplier: Optional multiplier for the alpha values
     * Gun returns back to original rotation after recoil
-        - Customizable properties:
+        * Customizable properties:
             - PullBackAlpha: How fast gun returns back to original rotation after recoil
             - PullbackAlphaMultiplier: Optional multiplier for the alpha values
             - PullDownDelayLength: How much time has to pass (in seconds) since last shot fired, before gun starts to pull back down to actual aim direction
