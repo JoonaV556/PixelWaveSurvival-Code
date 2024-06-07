@@ -30,10 +30,14 @@ public class GunRecoil : MonoBehaviour
     public float PullDownDelayLength = 0.1f;
 
     Vector3 targetRot = Vector3.zero; // Make private later
+    LookSide lastLookSide = LookSide.Right;
+    public bool EnablePulldown = true;
+    public Vector3 currentRot = Vector3.zero;
 
     private void Start()
     {
         targetRot = RecoilPivot.localRotation.eulerAngles;
+        lastLookSide = WeaponSpriteController.CurrentLookSide;
     }
 
     private void OnEnable()
@@ -65,12 +69,9 @@ public class GunRecoil : MonoBehaviour
         }
     }
 
-    LookSide lastLookSide = LookSide.Right;
-    public bool EnablePulldown = true;
-    public Vector3 currentRot = Vector3.zero;
     private void Update()
     {
-        // Get current rot for later use
+        // Get current rotation for later use
         currentRot = RecoilPivot.transform.localRotation.eulerAngles;
 
         if (!Enabled)
@@ -78,73 +79,35 @@ public class GunRecoil : MonoBehaviour
             return;
         }
 
-        // Flip gun sprite z rotation in case look side has changed
+        // Flip gun sprite z rotation if the look side has changed
         if (WeaponSpriteController.CurrentLookSide != lastLookSide)
         {
             lastLookSide = WeaponSpriteController.CurrentLookSide;
-            Vector3 ModifiedRot = Vector3.zero;
-            switch (WeaponSpriteController.CurrentLookSide)
-            {
-                case LookSide.Left:
-                    RecoilPivot.localEulerAngles = new Vector3(currentRot.x, currentRot.y, 360 - currentRot.z);
-                    currentRot = RecoilPivot.transform.localRotation.eulerAngles; // Update current rot
-                    break;
-                case LookSide.Right:
-                    RecoilPivot.localEulerAngles = new Vector3(currentRot.x, currentRot.y, 0 + (360 - currentRot.z));
-                    currentRot = RecoilPivot.transform.localRotation.eulerAngles; // Update current rot
-                    break;
-            }
+            float newZRot = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 360 - currentRot.z : 0 + (360 - currentRot.z);
+            RecoilPivot.localEulerAngles = new Vector3(currentRot.x, currentRot.y, newZRot);
+            currentRot = RecoilPivot.transform.localRotation.eulerAngles; // Update current rotation
             return;
         }
 
-        // Recoil upwards if shots fired, else pull weapon back down
-        bool shouldPullDown = secondsBeforePulldown == 0f;
-        if (shouldPullDown)
+        // Determine target rotation
+        if (secondsBeforePulldown == 0f)
         {
-            // targetRot = new Vector3(currentRot.x, currentRot.y, 0f); // Target rotation is always 0 on z axis when pulling down
-
-            if (EnablePulldown)
-            {
-                targetRot = new Vector3(currentRot.x, currentRot.y, 0f);
-            }
-            else
-            {
-                targetRot = currentRot;
-            }
-
-
-            // switch (WeaponSpriteController.CurrentLookSide)
-            // {
-            //     case WeaponSpriteController.LookSide.Left:
-            //         targetRot = new Vector3(targetRot.x, targetRot.y, 360f);
-            //         break;
-            //     case WeaponSpriteController.LookSide.Right:
-            //         targetRot = new Vector3(targetRot.x, targetRot.y, 0f);
-            //         break;
-            // }
+            targetRot = EnablePulldown ? new Vector3(currentRot.x, currentRot.y, 0f) : currentRot;
         }
         else if (pendingKick > 0f)
         {
-            // Add pending kick (degrees) to target rotation
             targetRot = new Vector3(currentRot.x, currentRot.y, currentRot.z + pendingKick);
-            // Clamp target rotation based on current look side (Prevents gun from recoiling infinitely and doing 360) 
-            switch (WeaponSpriteController.CurrentLookSide)
-            {
-                case LookSide.Left:
-                    targetRot = new Vector3(targetRot.x, targetRot.y, Mathf.Clamp(targetRot.z, 360 - KickDegreesUpperLimit, 360f));
-                    break;
-                case LookSide.Right:
-                    targetRot = new Vector3(targetRot.x, targetRot.y, Mathf.Clamp(targetRot.z, 0f, KickDegreesUpperLimit));
-                    break;
-            }
+            float zClampMin = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 360 - KickDegreesUpperLimit : 0f;
+            float zClampMax = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 360f : KickDegreesUpperLimit;
+            targetRot.z = Mathf.Clamp(targetRot.z, zClampMin, zClampMax);
         }
         else
         {
-            // If no pending kick, set target rotation to current rotation
+            // No pending recoil and gun is already 
             targetRot = currentRot;
         }
 
-        // Consume pending recoil kick
+        // Reset pending recoil kick
         pendingKick = 0f;
 
         // Reduce cooldown if there is any
@@ -154,33 +117,26 @@ public class GunRecoil : MonoBehaviour
         }
 
         // Calculate slerp alpha
-        float timedAlpha;
+        bool shouldPullDown = secondsBeforePulldown == 0f;
+
+        float multiplier = shouldPullDown ? PullbackAlphaMultiplier : RecoilAlphaMultiplier;
+
+        float baseAlpha = shouldPullDown ? PullBackAlpha : RecoilSlerpAlpha;
+
+        float timedAlpha = baseAlpha * Time.deltaTime;
+
+        // Apply optional multiplier to accelerate slerp
         if (shouldPullDown)
         {
-            // For pullback slerp
-            if (UsePullbackMultiplier)
-            {
-                timedAlpha = PullBackAlpha * Time.deltaTime * PullbackAlphaMultiplier;
-            }
-            else
-            {
-                timedAlpha = PullBackAlpha * Time.deltaTime;
-            }
+            timedAlpha *= UsePullbackMultiplier ? multiplier : 1f;
         }
         else
         {
-            // For recoil slerp
-            if (UseRecoilMultiplier)
-            {
-                timedAlpha = RecoilSlerpAlpha * Time.deltaTime * RecoilAlphaMultiplier;
-            }
-            else
-            {
-                timedAlpha = RecoilSlerpAlpha * Time.deltaTime;
-            }
+            timedAlpha *= UseRecoilMultiplier ? multiplier : 1f;
         }
 
-        // Add recoil or pullback by slerping towards target rotation
+        // Apply rotation using slerp
         RecoilPivot.localEulerAngles = Vector3.Slerp(currentRot, targetRot, timedAlpha);
     }
+
 }
