@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using UnityEngine;
 
-public class GunRecoil : MonoBehaviour
+public class RecoilController : MonoBehaviour
 {
     /*
 
@@ -75,18 +75,7 @@ public class GunRecoil : MonoBehaviour
     private void AddKick(Firearm firearm)
     {
         secondsBeforePulldown = PullDownDelayLength;
-        // Simulate kick by offsetting target rotation by degrees
-        switch (WeaponSpriteController.CurrentLookSide)
-        {
-            case LookSide.Left:
-                // targetRotation = new Vector3(targetRotation.x, targetRotation.y, targetRotation.z - KickPerShot);
-                pendingKick -= KickPerShot;
-                break;
-            case LookSide.Right:
-                // targetRotation = new Vector3(targetRotation.x, targetRotation.y, targetRotation.z + KickPerShot);
-                pendingKick += KickPerShot;
-                break;
-        }
+        pendingKick += KickPerShot;
     }
 
     private void Update()
@@ -111,9 +100,6 @@ public class GunRecoil : MonoBehaviour
 
         // Determine target rotation to slerp to
         UpdateTargetRotation();
-
-        // Reset pending recoil kick
-        pendingKick = 0f;
 
         // Reduce cooldown if there is any
         if (secondsBeforePulldown > 0f)
@@ -140,10 +126,22 @@ public class GunRecoil : MonoBehaviour
             // Recoil is still pending - Rotate gun upwards based on look direction
             var currentLookside = WeaponSpriteController.CurrentLookSide;
             targetRot = new Vector3(currentRot.x, currentRot.y, currentRot.z);
-            print("Target rot before recoil: " + targetRot.z);
+            // print("Target rot before recoil: " + targetRot.z);
 
-            // Change kick direction based on look side
-            targetRot.z = (currentLookside == LookSide.Left) ? 360 - pendingKick : targetRot.z + pendingKick;
+            // Add recoil based on look side
+            switch (currentLookside)
+            {
+                case LookSide.Left:
+                    targetRot.z -= pendingKick;
+                    break;
+                case LookSide.Right:
+                    targetRot.z += pendingKick;
+                    break;
+
+            }
+
+            // Reset pending recoil kick
+            pendingKick = 0f;
 
             // Clamp rotation to prevent gun from rotating too much
             float zClampMin = (currentLookside == LookSide.Left) ? 360 - KickDegreesUpperLimit : 0f;
