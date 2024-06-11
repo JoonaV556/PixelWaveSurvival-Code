@@ -58,6 +58,18 @@ public class RecoilController : MonoBehaviour
     {
         targetRot = RecoilPivot.localRotation.eulerAngles;
         lastLookSide = WeaponSpriteController.CurrentLookSide;
+        // print("Lookside at start: " + WeaponSpriteController.CurrentLookSide.ToString());
+
+        // Set initial rotation based on look side
+        switch (WeaponSpriteController.CurrentLookSide)
+        {
+            case LookSide.Left:
+                RecoilPivot.localEulerAngles = new Vector3(0f, 0f, 359.99f);
+                break;
+            case LookSide.Right:
+                RecoilPivot.localEulerAngles = new Vector3(0f, 0f, 0f);
+                break;
+        }
     }
 
     private void OnEnable()
@@ -113,7 +125,7 @@ public class RecoilController : MonoBehaviour
 
         // Debug 
         currentRot = RecoilPivot.transform.localRotation.eulerAngles;
-        print(currentRot.ToString());
+        // print(currentRot.ToString());
     }
 
     private void UpdateTargetRotation()
