@@ -92,10 +92,9 @@ public class RecoilController : MonoBehaviour
         if (WeaponSpriteController.CurrentLookSide != lastLookSide)
         {
             lastLookSide = WeaponSpriteController.CurrentLookSide;
-            float newZRot = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 360 - currentRot.z : 0 + (360 - currentRot.z);
+            float newZRot = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 359.99f - currentRot.z : 0 + (360 - currentRot.z);
             RecoilPivot.localEulerAngles = new Vector3(currentRot.x, currentRot.y, newZRot);
             currentRot = RecoilPivot.transform.localRotation.eulerAngles; // Update current rotation
-            return;
         }
 
         // Determine target rotation to slerp to
@@ -111,17 +110,39 @@ public class RecoilController : MonoBehaviour
 
         // Apply rotation using slerp
         RecoilPivot.localEulerAngles = Vector3.Slerp(currentRot, targetRot, timedAlpha);
+
+        // Debug 
+        currentRot = RecoilPivot.transform.localRotation.eulerAngles;
+        print(currentRot.ToString());
     }
 
     private void UpdateTargetRotation()
     {
-        // Determine target rotation
-        if (secondsBeforePulldown == 0f)
+        if (secondsBeforePulldown == 0f) // No recoil left - start pulling down
         {
             // Recoil ended - Rotate gun back to aim direction
             targetRot = EnablePulldown ? new Vector3(currentRot.x, currentRot.y, 0f) : currentRot;
+
+            if (EnablePulldown)
+            {
+                // Pulldown enabled, start rotating towards aim direction
+                switch (WeaponSpriteController.CurrentLookSide)
+                {
+                    case LookSide.Left:
+                        targetRot.z = 359.99f;
+                        break;
+                    case LookSide.Right:
+                        targetRot.z = 0f;
+                        break;
+                }
+            }
+            else
+            {
+                // Pulldown disabled, keep z rotation as is
+                targetRot = currentRot;
+            }
         }
-        else if (pendingKick > 0f)
+        else if (pendingKick > 0f) // Recoil is still pending - apply recoil
         {
             // Recoil is still pending - Rotate gun upwards based on look direction
             var currentLookside = WeaponSpriteController.CurrentLookSide;
@@ -148,7 +169,7 @@ public class RecoilController : MonoBehaviour
             float zClampMax = (currentLookside == LookSide.Left) ? 360f : KickDegreesUpperLimit;
             targetRot.z = Mathf.Clamp(targetRot.z, zClampMin, zClampMax);
         }
-        else
+        else // Gun is already pointing at aim direction - keep it there
         {
             // No pending recoil and gun is already pointing at aim direction - keep it there
             targetRot = currentRot;
