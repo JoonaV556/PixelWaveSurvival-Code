@@ -92,7 +92,7 @@ public class RecoilController : MonoBehaviour
         if (WeaponSpriteController.CurrentLookSide != lastLookSide)
         {
             lastLookSide = WeaponSpriteController.CurrentLookSide;
-            float newZRot = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 359.99f - currentRot.z : 0 + (360 - currentRot.z);
+            float newZRot = (WeaponSpriteController.CurrentLookSide == LookSide.Left) ? 359.99f - currentRot.z : 0 + (359.99f - currentRot.z);
             RecoilPivot.localEulerAngles = new Vector3(currentRot.x, currentRot.y, newZRot);
             currentRot = RecoilPivot.transform.localRotation.eulerAngles; // Update current rotation
         }
