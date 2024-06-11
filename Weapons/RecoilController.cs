@@ -121,8 +121,6 @@ public class RecoilController : MonoBehaviour
         if (secondsBeforePulldown == 0f) // No recoil left - start pulling down
         {
             // Recoil ended - Rotate gun back to aim direction
-            targetRot = EnablePulldown ? new Vector3(currentRot.x, currentRot.y, 0f) : currentRot;
-
             if (EnablePulldown)
             {
                 // Pulldown enabled, start rotating towards aim direction
@@ -139,7 +137,7 @@ public class RecoilController : MonoBehaviour
             else
             {
                 // Pulldown disabled, keep z rotation as is
-                targetRot = currentRot;
+                targetRot.z = currentRot.z;
             }
         }
         else if (pendingKick > 0f) // Recoil is still pending - apply recoil
@@ -165,8 +163,8 @@ public class RecoilController : MonoBehaviour
             pendingKick = 0f;
 
             // Clamp rotation to prevent gun from rotating too much
-            float zClampMin = (currentLookside == LookSide.Left) ? 360 - KickDegreesUpperLimit : 0f;
-            float zClampMax = (currentLookside == LookSide.Left) ? 360f : KickDegreesUpperLimit;
+            float zClampMin = (currentLookside == LookSide.Left) ? 359.99f - KickDegreesUpperLimit : 0f;
+            float zClampMax = (currentLookside == LookSide.Left) ? 359.99f : KickDegreesUpperLimit;
             targetRot.z = Mathf.Clamp(targetRot.z, zClampMin, zClampMax);
         }
         else // Gun is already pointing at aim direction - keep it there
