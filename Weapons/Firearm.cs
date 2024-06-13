@@ -67,11 +67,17 @@ public class Firearm : MonoBehaviour
     float burstFireRate; // Rounds per minute for burst fire mode
     public float bulletSpawnVelocity = 10f;
 
+    // Fire mode properties
     FireMode fireMode; // Current fire mode
     FireMode defaultFireMode; // Firemode after init
     FireMode[] possibleFireModes; // Possible fire modes on this gun
 
     AmmunitionType ammunitionType;
+
+    // Bullet spread properties
+    public bool ApplySpread = true;
+    float[] bulletSpread;
+    int spreadIndex = 0;
     #endregion
 
     bool initialized = false;
@@ -90,6 +96,9 @@ public class Firearm : MonoBehaviour
     AmmunitionHolder ammunitionHolder; // Swap this property (+ any references to it) for custom ammo handling
 
     // Remove later - Creates simulated weapon data
+    public float spreadDegreesMin = -5f;
+    public float spreadDegreesMax = 5f;
+    public float spreadMultiplier = 1f;
     private void DebugInit()
     {
         ammoInGun = 50;
@@ -102,7 +111,17 @@ public class Firearm : MonoBehaviour
         ammunitionHolder = new AmmunitionHolder();
         fireRate = 700;
         reloadTime = 1f;
+        bulletSpread = GetRandomizedBulletSpread(spreadDegreesMin, spreadDegreesMax, 30, spreadMultiplier);
+
         initialized = true;
+    }
+
+    /// <summary>
+    /// Randomizes the bullet spread with given parameters
+    /// </summary>
+    public void DebugRandomizeSpread()
+    {
+        bulletSpread = GetRandomizedBulletSpread(spreadDegreesMin, spreadDegreesMax, 30, spreadMultiplier);
     }
 
     private void OnEnable()
@@ -256,8 +275,16 @@ public class Firearm : MonoBehaviour
         // Rotate towards barrel pointing direction
         projectile.transform.right = ProjectileSpawnPoint.right;
 
+        // Apply optional bullet spread
+        if (ApplySpread)
+        {
+            projectile.transform.Rotate(0, 0, bulletSpread[spreadIndex]);
+            spreadIndex++;
+            spreadIndex = spreadIndex % bulletSpread.Length; // Start from beginning if we reach the end of spread array
+        }
+
         // Make the projectile fly towards barrel pointing direction
-        projectile.GetComponent<Rigidbody2D>().velocity = ProjectileSpawnPoint.right * bulletSpawnVelocity;
+        projectile.GetComponent<Rigidbody2D>().velocity = projectile.transform.right.normalized * bulletSpawnVelocity;
     }
 
     /// <summary>
@@ -389,5 +416,28 @@ public class Firearm : MonoBehaviour
         // Done reloading
         reloading = false;
         yield break;
+    }
+
+    /// <summary>
+    /// Returns an array of randomized bullet spread values in degrees.
+    /// </summary>
+    /// <param name="length">Length of the array</param>
+    /// <param name="multiplier">Optional multiplier applied to each spread degree</param>
+    /// <returns>Array of spread floats</returns>
+    private float[] GetRandomizedBulletSpread(
+        float degreesMin,
+        float degreesMax,
+        int length = 30,
+        float multiplier = 1f
+        )
+    {
+        var spread = new float[length];
+
+        for (int i = 0; i < length; i++)
+        {
+            var newSpread = UnityEngine.Random.Range(degreesMin, degreesMax) * multiplier;
+            spread[i] = newSpread;
+        }
+        return spread;
     }
 }

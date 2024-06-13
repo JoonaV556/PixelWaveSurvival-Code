@@ -29,7 +29,7 @@ public class RecoilController : MonoBehaviour
     public bool Enabled = true;
 
     [Tooltip("How many degrees the gun kicks upwards per shot fired.")]
-    public float KickPerShot = 2f;
+    public float RecoilClimbPerShot = 2f;
     [Tooltip("How many degrees the gun can kick upwards at most. Relative to 0 degrees on z axis.")]
     public float KickDegreesUpperLimit = 30f;
 
@@ -52,7 +52,7 @@ public class RecoilController : MonoBehaviour
     Vector3 targetRot = Vector3.zero; // Make private later
     LookSide lastLookSide = LookSide.Right;
     public bool EnablePulldown = true;
-    public Vector3 currentRot = Vector3.zero;
+    Vector3 currentRot = Vector3.zero;
 
     private void Start()
     {
@@ -87,7 +87,7 @@ public class RecoilController : MonoBehaviour
     private void AddKick(Firearm firearm)
     {
         secondsBeforePulldown = PullDownDelayLength;
-        pendingKick += KickPerShot;
+        pendingKick += RecoilClimbPerShot;
     }
 
     private void Update()
