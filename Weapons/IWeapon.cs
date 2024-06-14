@@ -16,7 +16,7 @@ When weapon-related input is received, WeaponSlotController forwards it to the a
 /// Interface for controlling various types of weapons with similar input methods.
 /// </summary>
 /// <remarks>Obviously not all weapon types need to implement logic for these functions. In that case, justs leave them empty</remarks>
-public interface IWeaponInput
+public interface IWeapon
 {
     public void OnReloadPressed()
     {

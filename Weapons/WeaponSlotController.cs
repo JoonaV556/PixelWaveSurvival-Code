@@ -4,9 +4,15 @@ using UnityEngine;
 
 public class WeaponSlotController : MonoBehaviour
 {
+    // Holds list of weapon slots
+    // Sends weapon-related input to active weapon
+
+    [HideInInspector]
     public List<WeaponSlot> weaponSlots;
 
     public WeaponSlot activeSlot;
+
+    public PlayerInput PlayerInput;
 
     public int maxSlots = 9;
 
@@ -18,14 +24,12 @@ public class WeaponSlotController : MonoBehaviour
     {
         weaponSlots = new List<WeaponSlot>();
 
-        // Add first slot for fists 
-        var fistSlot = new WeaponSlot(new Fists(), false);
-        weaponSlots.Add(fistSlot);
-
-        // Add two more slots for weapons
-        for (int i = 1; i <= 2; i++)
+        // Get all weapons on same object
+        var weaponsOnThisObject = GetComponents<IWeapon>();
+        // Create weapon slots for each weapon
+        foreach (var weapon in weaponsOnThisObject)
         {
-            weaponSlots.Add(new WeaponSlot());
+            weaponSlots.Add(new WeaponSlot(weapon, true));
         }
 
         activeSlot = weaponSlots[startSlotIndex];
@@ -35,11 +39,19 @@ public class WeaponSlotController : MonoBehaviour
     private void OnEnable()
     {
         PlayerInput.OnWeaponSlotSwitched += OnWeaponSlotSwitched;
+        PlayerInput.OnMainAttackPressed += OnMainAttackPressed;
+        PlayerInput.OnMainAttackReleased += OnMainAttackReleased;
+        PlayerInput.OnReload += OnReloadPressed;
+        PlayerInput.OnSwitchFireMode += OnSwitchFireModePressed;
     }
 
     private void OnDisable()
     {
         PlayerInput.OnWeaponSlotSwitched -= OnWeaponSlotSwitched;
+        PlayerInput.OnMainAttackPressed += OnMainAttackPressed;
+        PlayerInput.OnMainAttackReleased += OnMainAttackReleased;
+        PlayerInput.OnReload += OnReloadPressed;
+        PlayerInput.OnSwitchFireMode += OnSwitchFireModePressed;
     }
 
     private void OnWeaponSlotSwitched(int numberKeyPressed)
@@ -65,21 +77,41 @@ public class WeaponSlotController : MonoBehaviour
         }
         return false;
     }
+
+    #region Active Weapon Input Handling
+    private IWeapon ActiveWeapon() => activeSlot.heldWeapon;
+    public void OnReloadPressed()
+    {
+        ActiveWeapon().OnReloadPressed();
+    }
+    public void OnSwitchFireModePressed()
+    {
+        ActiveWeapon().OnSwitchFireModePressed();
+    }
+    public void OnMainAttackPressed()
+    {
+        ActiveWeapon().OnMainAttackPressed();
+    }
+    public void OnMainAttackReleased()
+    {
+        ActiveWeapon().OnMainAttackReleased();
+    }
+    #endregion
 }
 
 [Serializable]
 public class WeaponSlot
 {
     public bool canSwitchHeldWeapon = true;
-    public Weapon heldWeapon;
+    public IWeapon heldWeapon;
 
-    public WeaponSlot(Weapon weapon = null, bool canSwitchWeapon = true)
+    public WeaponSlot(IWeapon weapon = null, bool canSwitchWeapon = true)
     {
         heldWeapon = weapon;
         canSwitchHeldWeapon = canSwitchWeapon;
     }
 
-    public void SwitchWeapon(Weapon newWeapon)
+    public void SwitchWeapon(IWeapon newWeapon)
     {
         if (canSwitchHeldWeapon)
         {
@@ -88,13 +120,7 @@ public class WeaponSlot
     }
 }
 
-[Serializable]
-public class Weapon
-{
-    // TODO - Refactor when weapons are implemented
-}
-
-public class Fists : Weapon
+public class Fists : IWeapon
 {
     // TODO - Refactor when weapons are implemented
 }

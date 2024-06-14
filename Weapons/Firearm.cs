@@ -19,7 +19,7 @@ public enum AmmunitionType
 /// <summary>
 /// Universal firearm script for all kinds of guns/firearms
 /// </summary>
-public class Firearm : MonoBehaviour, IWeaponInput
+public class Firearm : MonoBehaviour, IWeapon
 {
     /*
 
