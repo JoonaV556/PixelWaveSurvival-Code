@@ -19,7 +19,7 @@ public enum AmmunitionType
 /// <summary>
 /// Universal firearm script for all kinds of guns/firearms
 /// </summary>
-public class Firearm : MonoBehaviour
+public class Firearm : MonoBehaviour, IWeaponInput
 {
     /*
 
@@ -34,13 +34,11 @@ public class Firearm : MonoBehaviour
     - Dry fire (single hammer hit after emptying the magazine)
     - Events for shot fired and dry fire
     - Supports fetching weapon data from custom sources
+    - Optional bullet spread
     
     Rounds per minute = (x)
     Rounds per second  = (y) = x / 60
     Time between each round = 1 / y
-
-    TODO / WIP
-    - Implement fired projectiles
 
     */
 
@@ -126,10 +124,10 @@ public class Firearm : MonoBehaviour
 
     private void OnEnable()
     {
-        PlayerInput.OnMainAttackPressed += OnMainAttackPressed;
-        PlayerInput.OnMainAttackReleased += OnMainAttackReleased;
-        PlayerInput.OnReload += OnReloadPressed;
-        PlayerInput.OnSwitchFireMode += OnSwitchFireModePressed;
+        PlayerInput.OnMainAttackPressed += MainAttackPressed;
+        PlayerInput.OnMainAttackReleased += MainAttackReleased;
+        PlayerInput.OnReload += ReloadPressed;
+        PlayerInput.OnSwitchFireMode += SwitchFireModePressed;
 
         // Allows testing without weapon data
         DebugInit();
@@ -137,10 +135,10 @@ public class Firearm : MonoBehaviour
 
     private void OnDisable()
     {
-        PlayerInput.OnMainAttackPressed -= OnMainAttackPressed;
-        PlayerInput.OnMainAttackReleased -= OnMainAttackReleased;
-        PlayerInput.OnReload -= OnReloadPressed;
-        PlayerInput.OnSwitchFireMode -= OnSwitchFireModePressed;
+        PlayerInput.OnMainAttackPressed -= MainAttackPressed;
+        PlayerInput.OnMainAttackReleased -= MainAttackReleased;
+        PlayerInput.OnReload -= ReloadPressed;
+        PlayerInput.OnSwitchFireMode -= SwitchFireModePressed;
 
         if (fullAutoRoutine != null)
         {
@@ -169,7 +167,7 @@ public class Firearm : MonoBehaviour
     }
 
     #region InputReactions
-    private void OnReloadPressed()
+    private void ReloadPressed()
     {
         if (CanReload())
         {
@@ -177,13 +175,13 @@ public class Firearm : MonoBehaviour
         }
     }
 
-    private void OnSwitchFireModePressed()
+    private void SwitchFireModePressed()
     {
         var canSwitch = !firingFullAuto;
         SwitchFireMode();
     }
 
-    private void OnMainAttackPressed()
+    private void MainAttackPressed()
     {
 
         tryingToFire = true;
@@ -233,7 +231,7 @@ public class Firearm : MonoBehaviour
         }
     }
 
-    private void OnMainAttackReleased()
+    private void MainAttackReleased()
     {
         tryingToFire = false;
     }
@@ -440,4 +438,26 @@ public class Firearm : MonoBehaviour
         }
         return spread;
     }
+
+    #region IWeaponInput
+    public void OnReloadPressed()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnSwitchFireModePressed()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnMainAttackPressed()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnMainAttackReleased()
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
 }
